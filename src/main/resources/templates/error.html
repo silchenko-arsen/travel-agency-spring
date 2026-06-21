@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{error.title}">Error</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/nav :: nav}"></div>
+
+<main class="container card">
+    <h1 th:text="#{error.title}">Error</h1>
+
+    <p>
+        <strong>Status:</strong>
+        <span th:text="${status}">500</span>
+    </p>
+
+    <p>
+        <strong th:text="#{error.message.label}">Message:</strong>
+        <span th:text="${message}">Something went wrong</span>
+    </p>
+
+    <a th:href="@{/tours}" th:text="#{button.back}">Back</a>
+</main>
+
+</body>
+</html>

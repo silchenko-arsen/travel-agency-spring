@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Email | Travel Agency</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header>
+    <h1>Travel Agency</h1>
+    <nav>
+        <a th:href="@{/tours}">Tours</a>
+        <a th:href="@{/auth/login}">Login</a>
+        <a th:href="@{/auth/register}">Register</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h2>Verify Email</h2>
+
+    <div class="success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="error" th:if="${verifyError}" th:text="${verifyError}"></div>
+
+    <form th:action="@{/auth/verify}" th:object="${verifyEmailRequest}" method="post">
+
+        <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" th:field="*{email}" placeholder="email@example.com">
+            <div class="error"
+                 th:if="${#fields.hasErrors('email')}"
+                 th:errors="*{email}">
+            </div>
+        </div>
+
+        <div>
+            <label for="code">Verification code</label>
+            <input id="code" type="text" th:field="*{code}" placeholder="Enter code">
+            <div class="error"
+                 th:if="${#fields.hasErrors('code')}"
+                 th:errors="*{code}">
+            </div>
+        </div>
+
+        <button type="submit">Verify</button>
+    </form>
+
+    <hr>
+
+    <form th:action="@{/auth/resend-code}" method="post">
+        <div>
+            <label for="resendEmail">Resend code to email</label>
+            <input id="resendEmail" type="email" name="email" placeholder="email@example.com">
+        </div>
+
+        <button type="submit">Resend code</button>
+    </form>
+
+    <p>
+        Already verified?
+        <a th:href="@{/auth/login}">Login</a>
+    </p>
+</main>
+
+</body>
+</html>

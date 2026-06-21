@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register | Travel Agency</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header>
+    <h1>Travel Agency</h1>
+    <nav>
+        <a th:href="@{/tours}">Tours</a>
+        <a th:href="@{/auth/login}">Login</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h2>Register</h2>
+
+    <div class="error" th:if="${registerError}" th:text="${registerError}"></div>
+
+    <form th:action="@{/auth/register}" th:object="${registerRequest}" method="post">
+
+        <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" th:field="*{email}" placeholder="email@example.com">
+            <div class="error"
+                 th:if="${#fields.hasErrors('email')}"
+                 th:errors="*{email}">
+            </div>
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <input id="password" type="password" th:field="*{password}" placeholder="Password">
+            <div class="error"
+                 th:if="${#fields.hasErrors('password')}"
+                 th:errors="*{password}">
+            </div>
+        </div>
+
+        <div>
+            <label for="firstName">First name</label>
+            <input id="firstName" type="text" th:field="*{firstName}" placeholder="First name">
+            <div class="error"
+                 th:if="${#fields.hasErrors('firstName')}"
+                 th:errors="*{firstName}">
+            </div>
+        </div>
+
+        <div>
+            <label for="lastName">Last name</label>
+            <input id="lastName" type="text" th:field="*{lastName}" placeholder="Last name">
+            <div class="error"
+                 th:if="${#fields.hasErrors('lastName')}"
+                 th:errors="*{lastName}">
+            </div>
+        </div>
+
+        <div>
+            <label for="phone">Phone</label>
+            <input id="phone" type="text" th:field="*{phone}" placeholder="+380501234567">
+            <div class="error"
+                 th:if="${#fields.hasErrors('phone')}"
+                 th:errors="*{phone}">
+            </div>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <p>
+        Already have an account?
+        <a th:href="@{/auth/login}">Login</a>
+    </p>
+</main>
+
+</body>
+</html>

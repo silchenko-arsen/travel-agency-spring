@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><title>Manager bookings</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+<main class="container">
+    <h1>Manager bookings</h1>
+    <table>
+        <tr><th>ID</th><th>User</th><th>Tour</th><th>Status</th><th>Change status</th></tr>
+        <tr th:each="booking : ${bookings.content}">
+            <td th:text="${booking.id}"></td>
+            <td th:text="${booking.user.email}"></td>
+            <td th:text="${booking.tour.title}"></td>
+            <td th:text="${booking.status}"></td>
+            <td>
+                <form th:if="${booking.status.name() == 'REGISTERED'}" th:action="@{/manager/bookings/{id}/status(id=${booking.id})}" method="post">
+                    <select name="status">
+                        <option value="PAID">PAID</option>
+                        <option value="CANCELED">CANCELED</option>
+                    </select>
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</main>
+</body>
+</html>

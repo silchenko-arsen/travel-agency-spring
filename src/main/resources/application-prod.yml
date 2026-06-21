@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 1111
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: false
+
+  sql:
+    init:
+      mode: never
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  mail:
+    enabled: true
+
+  jwt:
+    cookie-name: JWT_TOKEN
+    secret: VGhpcyBpcyBhIDMyIGJ5dGUgc2VjcmV0IGZvciBKV1QhISE=
+    expiration-seconds: 3600
+
+logging:
+  level:
+    com.example.travelagency: INFO

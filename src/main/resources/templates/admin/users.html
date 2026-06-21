@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><title>Users</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+<main class="container">
+    <h1>Users</h1>
+    <form th:action="@{/admin/users}" method="get">
+        <input name="keyword" th:value="${keyword}" placeholder="Search users">
+        <button type="submit" th:text="#{common.search}">Search</button>
+    </form>
+    <table>
+        <tr><th>Email</th><th>Name</th><th>Role</th><th>Verified</th><th>Blocked</th><th th:text="#{common.actions}">Actions</th></tr>
+        <tr th:each="user : ${users.content}">
+            <td th:text="${user.email}"></td>
+            <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+            <td th:text="${user.role}"></td>
+            <td th:text="${user.verified}"></td>
+            <td th:text="${user.blocked}"></td>
+            <td>
+                <form th:if="${user.role.name() != 'ROLE_ADMIN'}" th:action="@{/admin/users/{id}/block(id=${user.id})}" method="post">
+                    <input type="hidden" name="blocked" th:value="${!user.blocked}">
+                    <button type="submit" th:text="${user.blocked} ? 'Unblock' : 'Block'">Block</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</main>
+</body>
+</html>

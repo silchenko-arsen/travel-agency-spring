@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head><title th:text="${tour.title}">Tour</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+<main class="container card">
+    <h1 th:text="${tour.title}">Tour</h1>
+    <strong class="hot" th:if="${tour.hot}" th:text="#{common.hot}">HOT</strong>
+    <p th:text="${tour.description}"></p>
+    <p><b>Route:</b> <span th:text="${tour.country}"></span>, <span th:text="${tour.city}"></span></p>
+    <p><b>Dates:</b> <span th:text="${tour.startDate}"></span> - <span th:text="${tour.endDate}"></span></p>
+    <p><b>Price:</b> <span th:text="${tour.price}"></span> UAH</p>
+    <p><b>Places:</b> <span th:text="${tour.availablePlaces}"></span></p>
+    <form sec:authorize="hasRole('USER')" th:action="@{/bookings/tour/{id}(id=${tour.id})}" method="post">
+        <button type="submit">Book</button>
+    </form>
+    <p sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/admin/tours/{id}/edit(id=${tour.id})}">Edit</a>
+    </p>
+</main>
+</body>
+</html>

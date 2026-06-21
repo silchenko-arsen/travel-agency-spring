@@ -1,0 +1,13 @@
+<nav class="nav" th:fragment="nav" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
+    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" th:text="#{nav.profile}">Profile</a>
+    <a sec:authorize="hasRole('USER')" th:href="@{/bookings}" th:text="#{nav.bookings}">Bookings</a>
+    <a sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/manager/bookings}" th:text="#{nav.manager}">Manager</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" th:text="#{nav.admin}">Admin</a>
+    <span class="spacer"></span>
+    <a th:href="@{?lang=en}">EN</a>
+    <a th:href="@{?lang=uk}">UA</a>
+    <a sec:authorize="isAnonymous()" th:href="@{/auth/login}" th:text="#{nav.login}">Login</a>
+    <a sec:authorize="isAnonymous()" th:href="@{/auth/register}" th:text="#{nav.register}">Register</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/auth/logout}" th:text="#{nav.logout}">Logout</a>
+</nav>
