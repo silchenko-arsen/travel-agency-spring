@@ -8,6 +8,7 @@ import com.example.travelagency.exception.BusinessException;
 import com.example.travelagency.repository.BookingRepository;
 import com.example.travelagency.repository.TourRepository;
 import com.example.travelagency.repository.UserRepository;
+import com.example.travelagency.service.impl.BookingServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,24 +37,18 @@ class BookingServiceTest {
     private TourRepository tourRepository;
 
     @InjectMocks
-    private BookingService bookingService;
+    private BookingServiceImpl bookingService;
 
     @Test
     void bookTour_whenValid_shouldCreateBookingAndDecreasePlaces() {
         AppUser user = user();
         Tour tour = tour();
 
-        when(userRepository.findByEmailIgnoreCase("user@email.com"))
-                .thenReturn(Optional.of(user));
-
-        when(tourRepository.findById(1L))
-                .thenReturn(Optional.of(tour));
-
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
         when(bookingRepository.existsByUserAndTourAndStatusNot(user, tour, BookingStatus.CANCELED))
                 .thenReturn(false);
-
-        when(bookingRepository.save(any(Booking.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Booking booking = bookingService.bookTour("user@email.com", 1L);
 
@@ -62,10 +57,6 @@ class BookingServiceTest {
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
         assertThat(booking.getPriceAtBooking()).isEqualByComparingTo("1000");
         assertThat(tour.getAvailablePlaces()).isEqualTo(4);
-
-        verify(userRepository).findByEmailIgnoreCase("user@email.com");
-        verify(tourRepository).findById(1L);
-        verify(bookingRepository).save(any(Booking.class));
     }
 
     @Test
@@ -75,18 +66,44 @@ class BookingServiceTest {
         Tour tour = tour();
         tour.setAvailablePlaces(0);
 
-        when(userRepository.findByEmailIgnoreCase("user@email.com"))
-                .thenReturn(Optional.of(user));
-
-        when(tourRepository.findById(1L))
-                .thenReturn(Optional.of(tour));
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
 
         assertThatThrownBy(() -> bookingService.bookTour("user@email.com", 1L))
-                .isInstanceOf(BusinessException.class);
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.noPlaces");
 
-        verify(userRepository).findByEmailIgnoreCase("user@email.com");
-        verify(tourRepository).findById(1L);
         verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void bookTour_whenTourAlreadyStarted_shouldThrowBusinessException() {
+        AppUser user = user();
+
+        Tour tour = tour();
+        tour.setStartDate(LocalDate.now());
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
+
+        assertThatThrownBy(() -> bookingService.bookTour("user@email.com", 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.tourAlreadyStarted");
+    }
+
+    @Test
+    void bookTour_whenAlreadyBooked_shouldThrowBusinessException() {
+        AppUser user = user();
+        Tour tour = tour();
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
+        when(bookingRepository.existsByUserAndTourAndStatusNot(user, tour, BookingStatus.CANCELED))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> bookingService.bookTour("user@email.com", 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.alreadyBooked");
     }
 
     @Test
@@ -106,6 +123,18 @@ class BookingServiceTest {
     }
 
     @Test
+    void payForBooking_whenStatusIsNotRegistered_shouldThrowBusinessException() {
+        Booking booking = booking(user(), tour(), BookingStatus.PAID);
+
+        when(bookingRepository.findByIdAndUserEmail(10L, "user@email.com"))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.payForBooking("user@email.com", 10L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.onlyRegisteredCanBePaid");
+    }
+
+    @Test
     void payForBooking_whenNotEnoughBalance_shouldThrowBusinessException() {
         AppUser user = user();
         user.setBalance(new BigDecimal("100"));
@@ -116,7 +145,8 @@ class BookingServiceTest {
                 .thenReturn(Optional.of(booking));
 
         assertThatThrownBy(() -> bookingService.payForBooking("user@email.com", 10L))
-                .isInstanceOf(BusinessException.class);
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.notEnoughBalance");
 
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
     }
@@ -142,21 +172,63 @@ class BookingServiceTest {
     }
 
     @Test
-    void changeStatus_fromCanceledToRegistered_shouldDecreasePlaces() {
-        AppUser user = user();
+    void cancelUserBooking_whenTourAlreadyStarted_shouldThrowBusinessException() {
+        Tour tour = tour();
+        tour.setStartDate(LocalDate.now());
 
+        Booking booking = booking(user(), tour, BookingStatus.REGISTERED);
+
+        when(bookingRepository.findByIdAndUserEmail(10L, "user@email.com"))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.cancelUserBooking("user@email.com", 10L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.cancelNotAllowed");
+    }
+
+    @Test
+    void changeStatus_whenNewStatusIsNull_shouldThrowBusinessException() {
+        Booking booking = booking(user(), tour(), BookingStatus.REGISTERED);
+
+        when(bookingRepository.findById(10L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.statusRequired");
+    }
+
+    @Test
+    void changeStatus_fromCanceledToRegistered_shouldDecreasePlaces() {
         Tour tour = tour();
         tour.setAvailablePlaces(3);
 
-        Booking booking = booking(user, tour, BookingStatus.CANCELED);
+        Booking booking = booking(user(), tour, BookingStatus.CANCELED);
 
-        when(bookingRepository.findById(10L))
-                .thenReturn(Optional.of(booking));
+        when(bookingRepository.findById(10L)).thenReturn(Optional.of(booking));
 
         bookingService.changeStatus(10L, BookingStatus.REGISTERED);
 
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
         assertThat(tour.getAvailablePlaces()).isEqualTo(2);
+    }
+
+    @Test
+    void changeStatus_fromPaidToCanceled_shouldReturnMoneyAndIncreasePlaces() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("100"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(2);
+
+        Booking booking = booking(user, tour, BookingStatus.PAID);
+
+        when(bookingRepository.findById(10L)).thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.CANCELED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
+        assertThat(user.getBalance()).isEqualByComparingTo("1100");
     }
 
     private AppUser user() {

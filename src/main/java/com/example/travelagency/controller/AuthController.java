@@ -1,7 +1,5 @@
 package com.example.travelagency.controller;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import com.example.travelagency.dto.auth.LoginRequest;
 import com.example.travelagency.dto.auth.RegisterRequest;
 import com.example.travelagency.dto.auth.VerifyEmailRequest;
@@ -18,6 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequestMapping("/auth")
@@ -62,7 +63,6 @@ public class AuthController {
                     .build();
 
             response.addHeader("Set-Cookie", cookie.toString());
-
             return "redirect:/tours";
         } catch (BusinessException e) {
             model.addAttribute("loginError", messageService.get(e.getCode()));
@@ -139,10 +139,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-code")
-    public String resendCode(
-            @RequestParam String email,
-            Model model
-    ) {
+    public String resendCode(@RequestParam String email, Model model) {
         VerifyEmailRequest request = new VerifyEmailRequest();
         request.setEmail(email);
 
@@ -168,10 +165,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public String forgotPassword(
-            @RequestParam String email,
-            Model model
-    ) {
+    public String forgotPassword(@RequestParam String email, Model model) {
         try {
             authService.requestPasswordReset(email);
 
@@ -227,7 +221,6 @@ public class AuthController {
     public String logout(HttpServletResponse response) {
         clearJwtCookie(response);
         SecurityContextHolder.clearContext();
-
         return "redirect:/tours";
     }
 
@@ -235,7 +228,6 @@ public class AuthController {
     public String logoutGet(HttpServletResponse response) {
         clearJwtCookie(response);
         SecurityContextHolder.clearContext();
-
         return "redirect:/tours";
     }
 

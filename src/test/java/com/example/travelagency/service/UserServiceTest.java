@@ -7,6 +7,7 @@ import com.example.travelagency.dto.user.UserUpdateRequest;
 import com.example.travelagency.exception.BusinessException;
 import com.example.travelagency.exception.NotFoundException;
 import com.example.travelagency.repository.UserRepository;
+import com.example.travelagency.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +32,7 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Test
     void getByEmail_whenExists_shouldReturnUser() {
@@ -86,6 +87,21 @@ class UserServiceTest {
     }
 
     @Test
+    void topUpBalance_whenBalanceIsNull_shouldStartFromZero() {
+        AppUser user = user();
+        user.setBalance(null);
+
+        BalanceTopUpRequest request = new BalanceTopUpRequest();
+        request.setAmount(new BigDecimal("50"));
+
+        when(userRepository.findByEmail("user@email.com")).thenReturn(Optional.of(user));
+
+        AppUser result = userService.topUpBalance("user@email.com", request);
+
+        assertThat(result.getBalance()).isEqualByComparingTo("50");
+    }
+
+    @Test
     void setBlocked_whenUserIsAdmin_shouldThrowBusinessException() {
         AppUser admin = user();
         admin.setRole(Role.ROLE_ADMIN);
@@ -94,6 +110,18 @@ class UserServiceTest {
 
         assertThatThrownBy(() -> userService.setBlocked(1L, true))
                 .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void setBlocked_whenUserIsNotAdmin_shouldChangeBlockedStatus() {
+        AppUser user = user();
+        user.setRole(Role.ROLE_USER);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.setBlocked(1L, true);
+
+        assertThat(user.isBlocked()).isTrue();
     }
 
     @Test

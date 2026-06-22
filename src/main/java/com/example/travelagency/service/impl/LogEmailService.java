@@ -1,5 +1,6 @@
-package com.example.travelagency.service.email;
+package com.example.travelagency.service.impl;
 
+import com.example.travelagency.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;

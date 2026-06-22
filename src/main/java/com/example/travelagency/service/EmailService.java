@@ -1,4 +1,4 @@
-package com.example.travelagency.service.email;
+package com.example.travelagency.service;
 
 public interface EmailService {
     void sendVerificationCode(String to, String code);

@@ -8,7 +8,7 @@ import com.example.travelagency.dto.auth.VerifyEmailRequest;
 import com.example.travelagency.exception.BusinessException;
 import com.example.travelagency.repository.UserRepository;
 import com.example.travelagency.security.JwtService;
-import com.example.travelagency.service.email.EmailService;
+import com.example.travelagency.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +43,7 @@ class AuthServiceTest {
     private EmailService emailService;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     @Test
     void register_shouldCreateUserAndSendVerificationCode() {
@@ -58,10 +59,10 @@ class AuthServiceTest {
 
         authService.register(request);
 
-        ArgumentCaptor<AppUser> userCaptor = ArgumentCaptor.forClass(AppUser.class);
-        verify(userRepository).save(userCaptor.capture());
+        ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
+        verify(userRepository).save(captor.capture());
 
-        AppUser savedUser = userCaptor.getValue();
+        AppUser savedUser = captor.getValue();
 
         assertThat(savedUser.getEmail()).isEqualTo("test@email.com");
         assertThat(savedUser.getPassword()).isEqualTo("encoded-password");
@@ -132,13 +133,50 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_whenUserIsBlocked_shouldThrowBusinessException() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("user@email.com");
+        request.setPassword("password");
+
+        AppUser user = new AppUser();
+        user.setPassword("encoded");
+        user.setBlocked(true);
+        user.setVerified(true);
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "encoded")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("auth.error.userBlocked");
+    }
+
+    @Test
+    void login_whenEmailIsNotVerified_shouldThrowBusinessException() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("user@email.com");
+        request.setPassword("password");
+
+        AppUser user = new AppUser();
+        user.setPassword("encoded");
+        user.setBlocked(false);
+        user.setVerified(false);
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "encoded")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("auth.error.emailNotVerified");
+    }
+
+    @Test
     void verifyEmail_whenCodeIsValid_shouldVerifyUser() {
         VerifyEmailRequest request = new VerifyEmailRequest();
         request.setEmail("user@email.com");
         request.setCode("123456");
 
         AppUser user = new AppUser();
-        user.setEmail("user@email.com");
         user.setVerified(false);
         user.setVerificationCode("123456");
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(10));
@@ -169,5 +207,50 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.verifyEmail(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("auth.error.codeExpired");
+    }
+
+    @Test
+    void resendVerificationCode_whenUserAlreadyVerified_shouldThrowBusinessException() {
+        AppUser user = new AppUser();
+        user.setVerified(true);
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> authService.resendVerificationCode("user@email.com"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("auth.error.emailAlreadyVerified");
+    }
+
+    @Test
+    void requestPasswordReset_shouldSaveResetTokenAndSendEmail() {
+        AppUser user = new AppUser();
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+
+        authService.requestPasswordReset("user@email.com");
+
+        assertThat(user.getResetToken()).hasSize(6);
+        assertThat(user.getResetTokenExpiresAt()).isAfter(LocalDateTime.now());
+
+        verify(userRepository).save(user);
+        verify(emailService).sendResetToken(eq("user@email.com"), any(String.class));
+    }
+
+    @Test
+    void resetPassword_whenTokenIsValid_shouldUpdatePassword() {
+        AppUser user = new AppUser();
+        user.setResetToken("123456");
+        user.setResetTokenExpiresAt(LocalDateTime.now().plusMinutes(10));
+
+        when(userRepository.findByEmailIgnoreCase("user@email.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("Qwerty1!")).thenReturn("encoded-new-password");
+
+        authService.resetPassword("user@email.com", "123456", "Qwerty1!");
+
+        assertThat(user.getPassword()).isEqualTo("encoded-new-password");
+        assertThat(user.getResetToken()).isNull();
+        assertThat(user.getResetTokenExpiresAt()).isNull();
+
+        verify(userRepository).save(user);
     }
 }

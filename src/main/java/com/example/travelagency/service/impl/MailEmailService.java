@@ -1,5 +1,6 @@
-package com.example.travelagency.service.email;
+package com.example.travelagency.service.impl;
 
+import com.example.travelagency.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

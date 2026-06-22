@@ -4,6 +4,7 @@ import com.example.travelagency.domain.Tour;
 import com.example.travelagency.dto.tour.TourRequest;
 import com.example.travelagency.exception.NotFoundException;
 import com.example.travelagency.repository.TourRepository;
+import com.example.travelagency.service.impl.TourServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
@@ -31,7 +32,7 @@ class TourServiceTest {
     private ModelMapper modelMapper;
 
     @InjectMocks
-    private TourService tourService;
+    private TourServiceImpl tourService;
 
     @Test
     void getById_whenExists_shouldReturnTour() {
@@ -111,6 +112,13 @@ class TourServiceTest {
     @Test
     void search_shouldCallRepositorySearch() {
         tourService.search("paris", 0, 8, "price", "desc");
+
+        verify(tourRepository).search(eq("paris"), any(Pageable.class));
+    }
+
+    @Test
+    void search_whenSortIsInvalid_shouldUseSafeSort() {
+        tourService.search("paris", 0, 8, "wrongField", "wrongDirection");
 
         verify(tourRepository).search(eq("paris"), any(Pageable.class));
     }
