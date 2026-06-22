@@ -14,6 +14,7 @@
     <h1 th:text="#{nav.bookings}">My bookings</h1>
 
     <p class="success" th:if="${success}" th:text="${success}"></p>
+    <p class="error" th:if="${error}" th:text="${error}"></p>
 
     <table>
         <thead>

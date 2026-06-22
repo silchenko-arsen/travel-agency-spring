@@ -32,37 +32,62 @@ public class ProfileController {
     @GetMapping
     public String profile(Authentication authentication, Model model) {
         AppUser user = userService.getByEmail(authentication.getName());
+
         model.addAttribute("user", user);
         model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
         model.addAttribute("balanceForm", new BalanceTopUpRequest());
+
         return "profile";
     }
 
     @PostMapping
-    public String updateProfile(@Valid @ModelAttribute("profileForm") UserUpdateRequest request,
-                                BindingResult bindingResult,
-                                Authentication authentication,
-                                Model model) {
+    public String updateProfile(
+            @Valid @ModelAttribute("profileForm") UserUpdateRequest request,
+            BindingResult bindingResult,
+            Authentication authentication,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
         AppUser user = userService.getByEmail(authentication.getName());
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("user", user);
             model.addAttribute("balanceForm", new BalanceTopUpRequest());
             return "profile";
         }
+
         userService.updateProfile(authentication.getName(), request);
+
+        redirectAttributes.addFlashAttribute(
+                "success",
+                messageService.get("profile.success.updated")
+        );
+
         return "redirect:/profile";
     }
 
     @PostMapping("/balance")
-    public String topUp(@Valid @ModelAttribute("balanceForm") BalanceTopUpRequest request,
-                        BindingResult bindingResult,
-                        Authentication authentication,
-                        RedirectAttributes redirectAttributes) {
+    public String topUp(
+            @Valid @ModelAttribute("balanceForm") BalanceTopUpRequest request,
+            BindingResult bindingResult,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes
+    ) {
         if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute(
+                    "balanceError",
+                    messageService.get("validation.balance.amount.min")
+            );
             return "redirect:/profile";
         }
+
         userService.topUpBalance(authentication.getName(), request);
-        redirectAttributes.addFlashAttribute("success", "Balance updated.");
+
+        redirectAttributes.addFlashAttribute(
+                "success",
+                messageService.get("profile.success.balanceUpdated")
+        );
+
         return "redirect:/profile";
     }
 
@@ -71,15 +96,22 @@ public class ProfileController {
             @RequestParam String oldPassword,
             @RequestParam String newPassword,
             Authentication authentication,
-            Model model
+            RedirectAttributes redirectAttributes
     ) {
         try {
             userService.changePassword(authentication.getName(), oldPassword, newPassword);
-            model.addAttribute("passwordSuccess", messageService.get("profile.success.passwordChanged"));
+
+            redirectAttributes.addFlashAttribute(
+                    "passwordSuccess",
+                    messageService.get("profile.success.passwordChanged")
+            );
         } catch (BusinessException e) {
-            model.addAttribute("passwordError", messageService.get(e.getCode()));
+            redirectAttributes.addFlashAttribute(
+                    "passwordError",
+                    messageService.get(e.getCode())
+            );
         }
 
-        return "/profile";
+        return "redirect:/profile";
     }
 }
