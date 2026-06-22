@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -173,16 +174,34 @@ public class AuthController {
     ) {
         try {
             authService.requestPasswordReset(email);
-            model.addAttribute("successMessage", messageService.get("auth.success.resetTokenSent"));
+
+            String encodedEmail = URLEncoder.encode(
+                    email,
+                    StandardCharsets.UTF_8
+            );
+
+            return "redirect:/auth/reset-password?email=" + encodedEmail + "&sent=true";
         } catch (BusinessException e) {
             model.addAttribute("resetError", messageService.get(e.getCode()));
+            return "auth/forgot-password";
         }
-
-        return "auth/forgot-password";
     }
 
     @GetMapping("/reset-password")
-    public String resetPasswordPage() {
+    public String resetPasswordPage(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String sent,
+            Model model
+    ) {
+        model.addAttribute("email", email);
+
+        if (sent != null) {
+            model.addAttribute(
+                    "successMessage",
+                    messageService.get("auth.success.resetTokenSent")
+            );
+        }
+
         return "auth/reset-password";
     }
 
@@ -206,6 +225,21 @@ public class AuthController {
 
     @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
+        clearJwtCookie(response);
+        SecurityContextHolder.clearContext();
+
+        return "redirect:/tours";
+    }
+
+    @GetMapping("/logout")
+    public String logoutGet(HttpServletResponse response) {
+        clearJwtCookie(response);
+        SecurityContextHolder.clearContext();
+
+        return "redirect:/tours";
+    }
+
+    private void clearJwtCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
                 .httpOnly(true)
                 .secure(false)
@@ -215,12 +249,5 @@ public class AuthController {
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
-
-        return "redirect:/tours";
-    }
-
-    @GetMapping("/logout")
-    public String logoutGet() {
-        return "redirect:/auth/login";
     }
 }
