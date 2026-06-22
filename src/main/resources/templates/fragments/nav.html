@@ -1,55 +1,55 @@
 <nav class="nav"
      th:fragment="nav"
      xmlns:th="http://www.thymeleaf.org"
-     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+     xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
     <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
 
-    <a th:href="@{/profile}"
-       sec:authorize="isAuthenticated()"
+    <a sec:authorize="isAuthenticated()"
+       th:href="@{/profile}"
        th:text="#{nav.profile}">
         Profile
     </a>
 
-    <a th:href="@{/bookings}"
-       sec:authorize="isAuthenticated()"
+    <a sec:authorize="hasRole('USER')"
+       th:href="@{/bookings}"
        th:text="#{nav.bookings}">
         My bookings
     </a>
 
-    <a th:href="@{/manager/bookings}"
-       sec:authorize="hasAnyRole('MANAGER', 'ADMIN')"
+    <a sec:authorize="hasAnyRole('MANAGER','ADMIN')"
+       th:href="@{/manager/bookings}"
        th:text="#{nav.bookedTours}">
         Booked tours
     </a>
 
-    <a th:href="@{/admin/users}"
-       sec:authorize="hasRole('ADMIN')"
+    <a sec:authorize="hasRole('ADMIN')"
+       th:href="@{/admin/users}"
        th:text="#{nav.users}">
         Users
     </a>
 
     <span class="spacer"></span>
 
-    <a href="?lang=en">EN</a>
-    <a href="?lang=uk">UA</a>
+    <a th:href="@{?lang=en}">EN</a>
+    <a th:href="@{?lang=uk}">UA</a>
 
-    <a th:href="@{/auth/login}"
-       sec:authorize="!isAuthenticated()"
+    <a sec:authorize="isAnonymous()"
+       th:href="@{/auth/login}"
        th:text="#{nav.login}">
         Login
     </a>
 
-    <a th:href="@{/auth/register}"
-       sec:authorize="!isAuthenticated()"
+    <a sec:authorize="isAnonymous()"
+       th:href="@{/auth/register}"
        th:text="#{nav.register}">
         Register
     </a>
 
-    <form th:action="@{/auth/logout}"
+    <form sec:authorize="isAuthenticated()"
+          th:action="@{/auth/logout}"
           method="post"
-          class="nav-logout-form"
-          sec:authorize="isAuthenticated()">
+          class="nav-logout-form">
         <button type="submit"
                 class="nav-logout-button"
                 th:text="#{nav.logout}">

@@ -1,32 +1,86 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><title>Bookings</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" th:href="@{/css/style.css}">
+<head>
+    <title th:text="#{nav.bookings}">Bookings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/nav :: nav}"></div>
+
 <main class="container">
     <h1 th:text="#{nav.bookings}">My bookings</h1>
+
     <p class="success" th:if="${success}" th:text="${success}"></p>
+
     <table>
-        <tr><th>Tour</th><th>Status</th><th>Price</th><th>Start</th><th th:text="#{common.actions}">Actions</th></tr>
+        <thead>
+        <tr>
+            <th th:text="#{booking.tour}">Tour</th>
+            <th th:text="#{booking.status}">Status</th>
+            <th th:text="#{booking.price}">Price</th>
+            <th th:text="#{booking.start}">Start</th>
+            <th th:text="#{common.actions}">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
         <tr th:each="booking : ${bookings.content}">
             <td th:text="${booking.tour.title}">Tour</td>
-            <td th:text="${booking.status}">REGISTERED</td>
-            <td th:text="${booking.priceAtBooking}">0</td>
-            <td th:text="${booking.tour.startDate}">date</td>
+
+            <td th:with="statusKey=${'booking.status.' + booking.status.name()}"
+                th:text="#{${statusKey}}">
+                REGISTERED
+            </td>
+
             <td>
-                <form th:if="${booking.status.name() == 'REGISTERED'}" th:action="@{/bookings/{id}/pay(id=${booking.id})}" method="post">
-                    <button type="submit">Pay</button>
+                <span th:text="${booking.priceAtBooking}">0</span>
+                <span th:text="#{currency.uah}">UAH</span>
+            </td>
+
+            <td th:text="${booking.tour.startDate}">date</td>
+
+            <td>
+                <form th:if="${booking.status.name() == 'REGISTERED'}"
+                      th:action="@{/bookings/{id}/pay(id=${booking.id})}"
+                      method="post">
+                    <button type="submit" th:text="#{booking.pay}">
+                        Pay
+                    </button>
                 </form>
-                <form th:if="${booking.status.name() != 'CANCELED'}" th:action="@{/bookings/{id}/cancel(id=${booking.id})}" method="post">
-                    <button type="submit" th:text="#{common.cancel}">Cancel</button>
+
+                <form th:if="${booking.status.name() != 'CANCELED'}"
+                      th:action="@{/bookings/{id}/cancel(id=${booking.id})}"
+                      method="post">
+                    <button type="submit" th:text="#{common.cancel}">
+                        Cancel
+                    </button>
                 </form>
             </td>
         </tr>
+        </tbody>
     </table>
+
+    <div class="pagination">
+        <a th:if="${bookings.hasPrevious()}"
+           th:href="@{/bookings(page=${bookings.number - 1})}"
+           th:text="#{pagination.prev}">
+            Prev
+        </a>
+
+        <span th:text="${bookings.number + 1} + ' / ' + ${bookings.totalPages}">
+            1 / 1
+        </span>
+
+        <a th:if="${bookings.hasNext()}"
+           th:href="@{/bookings(page=${bookings.number + 1})}"
+           th:text="#{pagination.next}">
+            Next
+        </a>
+    </div>
 </main>
+
 </body>
 </html>
