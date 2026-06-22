@@ -3,7 +3,6 @@
 <head>
     <title th:text="#{profile.title}">Profile</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -16,15 +15,16 @@
     <p class="success" th:if="${success}" th:text="${success}"></p>
     <p class="success" th:if="${passwordSuccess}" th:text="${passwordSuccess}"></p>
     <p class="error" th:if="${passwordError}" th:text="${passwordError}"></p>
+    <p class="error" th:if="${balanceError}" th:text="${balanceError}"></p>
 
     <p>
         <b th:text="#{profile.email}">Email:</b>
-        <span th:text="${user.email}"></span>
+        <span th:text="${user.email}">email</span>
     </p>
 
     <p>
         <b th:text="#{profile.balance}">Balance:</b>
-        <span th:text="${user.balance}"></span>
+        <span th:text="${user.balance}">0</span>
         <span th:text="#{profile.currency}">UAH</span>
     </p>
 
@@ -33,25 +33,48 @@
     <h2 th:text="#{profile.update.title}">Update info</h2>
 
     <form th:action="@{/profile}" th:object="${profileForm}" method="post">
-        <label>
-            <span th:text="#{profile.firstName}">First name</span>
-            <input th:field="*{firstName}">
-        </label>
-        <span class="error" th:errors="*{firstName}"></span>
+        <label for="firstName" th:text="#{profile.firstName}">First name</label>
 
-        <label>
-            <span th:text="#{profile.lastName}">Last name</span>
-            <input th:field="*{lastName}">
-        </label>
-        <span class="error" th:errors="*{lastName}"></span>
+        <input id="firstName"
+               type="text"
+               th:field="*{firstName}"
+               required
+               autocomplete="given-name">
 
-        <label>
-            <span th:text="#{profile.phone}">Phone</span>
-            <input th:field="*{phone}">
-        </label>
-        <span class="error" th:errors="*{phone}"></span>
+        <div class="error"
+             th:if="${#fields.hasErrors('firstName')}"
+             th:errors="*{firstName}">
+        </div>
 
-        <button type="submit" th:text="#{common.save}">Save</button>
+        <label for="lastName" th:text="#{profile.lastName}">Last name</label>
+
+        <input id="lastName"
+               type="text"
+               th:field="*{lastName}"
+               required
+               autocomplete="family-name">
+
+        <div class="error"
+             th:if="${#fields.hasErrors('lastName')}"
+             th:errors="*{lastName}">
+        </div>
+
+        <label for="phone" th:text="#{profile.phone}">Phone</label>
+
+        <input id="phone"
+               type="tel"
+               th:field="*{phone}"
+               pattern="^$|^\+?[1-9][0-9]{7,14}$"
+               autocomplete="tel">
+
+        <div class="error"
+             th:if="${#fields.hasErrors('phone')}"
+             th:errors="*{phone}">
+        </div>
+
+        <button type="submit" th:text="#{common.save}">
+            Save
+        </button>
     </form>
 
     <hr>
@@ -59,36 +82,50 @@
     <h2 th:text="#{profile.balance.title}">Top up balance</h2>
 
     <form th:action="@{/profile/balance}" th:object="${balanceForm}" method="post">
-        <label>
-            <span th:text="#{profile.balance.amount}">Amount</span>
-            <input type="number" step="0.01" min="0.01" th:field="*{amount}">
-        </label>
-        <span class="error" th:errors="*{amount}"></span>
+        <label for="amount" th:text="#{profile.balance.amount}">Amount</label>
 
-        <button type="submit" th:text="#{profile.balance.button}">Top up</button>
+        <input id="amount"
+               type="number"
+               step="0.01"
+               min="0.01"
+               th:field="*{amount}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('amount')}"
+             th:errors="*{amount}">
+        </div>
+
+        <button type="submit" th:text="#{profile.balance.button}">
+            Top up
+        </button>
     </form>
 
     <hr>
 
-    <section>
-        <h2 th:text="#{profile.password.title}">Change password</h2>
+    <h2 th:text="#{profile.password.title}">Change password</h2>
 
-        <form th:action="@{/profile/password}" method="post">
-            <label>
-                <span th:text="#{profile.password.old}">Old password</span>
-                <input type="password" name="oldPassword" required>
-            </label>
+    <form th:action="@{/profile/password}" method="post">
+        <label for="oldPassword" th:text="#{profile.password.old}">Old password</label>
 
-            <label>
-                <span th:text="#{profile.password.new}">New password</span>
-                <input type="password" name="newPassword" minlength="6" required>
-            </label>
+        <input id="oldPassword"
+               type="password"
+               name="oldPassword"
+               required
+               autocomplete="current-password">
 
-            <button type="submit" th:text="#{profile.password.button}">
-                Update password
-            </button>
-        </form>
-    </section>
+        <label for="newPassword" th:text="#{profile.password.new}">New password</label>
+
+        <input id="newPassword"
+               type="password"
+               name="newPassword"
+               required
+               autocomplete="new-password">
+
+        <button type="submit" th:text="#{profile.password.button}">
+            Update password
+        </button>
+    </form>
 </main>
 
 </body>

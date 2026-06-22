@@ -21,10 +21,13 @@
 
         <div>
             <label for="email" th:text="#{auth.register.email}">Email</label>
+
             <input id="email"
                    type="email"
                    th:field="*{email}"
-                   th:placeholder="#{auth.register.email.placeholder}">
+                   th:placeholder="#{auth.register.email.placeholder}"
+                   required
+                   autocomplete="email">
 
             <div class="error"
                  th:if="${#fields.hasErrors('email')}"
@@ -34,10 +37,15 @@
 
         <div>
             <label for="password" th:text="#{auth.register.password}">Password</label>
+
             <input id="password"
                    type="password"
                    th:field="*{password}"
-                   th:placeholder="#{auth.register.password.placeholder}">
+                   th:placeholder="#{auth.register.password.placeholder}"
+                   required
+                   minlength="8"
+                   maxlength="100"
+                   autocomplete="new-password">
 
             <div class="error"
                  th:if="${#fields.hasErrors('password')}"
@@ -47,10 +55,15 @@
 
         <div>
             <label for="firstName" th:text="#{auth.register.firstName}">First name</label>
+
             <input id="firstName"
                    type="text"
                    th:field="*{firstName}"
-                   th:placeholder="#{auth.register.firstName.placeholder}">
+                   th:placeholder="#{auth.register.firstName.placeholder}"
+                   required
+                   minlength="2"
+                   maxlength="80"
+                   autocomplete="given-name">
 
             <div class="error"
                  th:if="${#fields.hasErrors('firstName')}"
@@ -60,10 +73,15 @@
 
         <div>
             <label for="lastName" th:text="#{auth.register.lastName}">Last name</label>
+
             <input id="lastName"
                    type="text"
                    th:field="*{lastName}"
-                   th:placeholder="#{auth.register.lastName.placeholder}">
+                   th:placeholder="#{auth.register.lastName.placeholder}"
+                   required
+                   minlength="2"
+                   maxlength="80"
+                   autocomplete="family-name">
 
             <div class="error"
                  th:if="${#fields.hasErrors('lastName')}"
@@ -73,10 +91,13 @@
 
         <div>
             <label for="phone" th:text="#{auth.register.phone}">Phone</label>
+
             <input id="phone"
-                   type="text"
+                   type="tel"
                    th:field="*{phone}"
-                   th:placeholder="#{auth.register.phone.placeholder}">
+                   th:placeholder="#{auth.register.phone.placeholder}"
+                   pattern="\+?[0-9]{10,15}"
+                   autocomplete="tel">
 
             <div class="error"
                  th:if="${#fields.hasErrors('phone')}"

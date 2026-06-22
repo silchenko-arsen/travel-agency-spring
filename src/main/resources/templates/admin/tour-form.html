@@ -3,7 +3,6 @@
 <head>
     <title th:text="#{tour.form.title}">Tour form</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -11,8 +10,12 @@
 <div th:replace="~{fragments/nav :: nav}"></div>
 
 <main class="container card">
-    <h1 th:text="${mode == 'create'} ? #{tour.form.create.title} : #{tour.form.edit.title}">
-        Tour
+    <h1 th:if="${mode == 'create'}" th:text="#{tour.form.create.title}">
+        Create tour
+    </h1>
+
+    <h1 th:if="${mode == 'edit'}" th:text="#{tour.form.edit.title}">
+        Edit tour
     </h1>
 
     <form th:action="${mode == 'create'} ? @{/admin/tours} : @{/admin/tours/{id}(id=${tourId})}"
@@ -25,70 +28,162 @@
             Date error
         </div>
 
-        <label>
-            <span th:text="#{tour.form.title.label}">Title</span>
-            <input th:field="*{title}">
-        </label>
-        <span class="error" th:errors="*{title}"></span>
+        <label for="title" th:text="#{tour.form.title.label}">Title</label>
 
-        <label>
-            <span th:text="#{tour.form.description}">Description</span>
-            <textarea th:field="*{description}"></textarea>
-        </label>
-        <span class="error" th:errors="*{description}"></span>
+        <input id="title"
+               type="text"
+               th:field="*{title}"
+               required>
 
-        <label>
-            <span th:text="#{tour.form.country}">Country</span>
-            <input th:field="*{country}">
-        </label>
-        <span class="error" th:errors="*{country}"></span>
+        <div class="error"
+             th:if="${#fields.hasErrors('title')}"
+             th:errors="*{title}">
+        </div>
 
-        <label>
-            <span th:text="#{tour.form.city}">City</span>
-            <input th:field="*{city}">
-        </label>
-        <span class="error" th:errors="*{city}"></span>
+        <label for="description" th:text="#{tour.form.description}">Description</label>
 
-        <label>
-            <span th:text="#{tour.form.startDate}">Start date</span>
-            <input type="date" th:field="*{startDate}">
-        </label>
-        <span class="error" th:errors="*{startDate}"></span>
+        <textarea id="description"
+                  th:field="*{description}"
+                  required></textarea>
 
-        <label>
-            <span th:text="#{tour.form.endDate}">End date</span>
-            <input type="date" th:field="*{endDate}">
-        </label>
-        <span class="error" th:errors="*{endDate}"></span>
+        <div class="error"
+             th:if="${#fields.hasErrors('description')}"
+             th:errors="*{description}">
+        </div>
 
-        <label>
-            <span th:text="#{tour.form.price}">Price</span>
-            <input type="number" step="0.01" th:field="*{price}">
-        </label>
-        <span class="error" th:errors="*{price}"></span>
+        <label for="country" th:text="#{tour.form.country}">Country</label>
 
-        <label>
-            <span th:text="#{tour.form.availablePlaces}">Available places</span>
-            <input type="number" min="1" th:field="*{availablePlaces}">
+        <input id="country"
+               type="text"
+               th:field="*{country}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('country')}"
+             th:errors="*{country}">
+        </div>
+
+        <label for="city" th:text="#{tour.form.city}">City</label>
+
+        <input id="city"
+               type="text"
+               th:field="*{city}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('city')}"
+             th:errors="*{city}">
+        </div>
+
+        <label for="startDate" th:text="#{tour.form.startDate}">Start date</label>
+
+        <input id="startDate"
+               type="date"
+               th:field="*{startDate}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('startDate')}"
+             th:errors="*{startDate}">
+        </div>
+
+        <label for="endDate" th:text="#{tour.form.endDate}">End date</label>
+
+        <input id="endDate"
+               type="date"
+               th:field="*{endDate}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('endDate')}"
+             th:errors="*{endDate}">
+        </div>
+
+        <label for="price" th:text="#{tour.form.price}">Price</label>
+
+        <input id="price"
+               type="number"
+               step="0.01"
+               min="0.01"
+               th:field="*{price}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('price')}"
+             th:errors="*{price}">
+        </div>
+
+        <label for="availablePlaces" th:text="#{tour.form.availablePlaces}">
+            Available places
         </label>
-        <span class="error" th:errors="*{availablePlaces}"></span>
+
+        <input id="availablePlaces"
+               type="number"
+               min="1"
+               th:field="*{availablePlaces}"
+               required>
+
+        <div class="error"
+             th:if="${#fields.hasErrors('availablePlaces')}"
+             th:errors="*{availablePlaces}">
+        </div>
 
         <label class="checkbox-row">
             <input type="checkbox" th:field="*{hot}">
             <span th:text="#{tour.form.hot}">Hot</span>
         </label>
 
-        <button type="submit" th:text="#{common.save}">Save</button>
+        <button type="submit" th:text="#{common.save}">
+            Save
+        </button>
     </form>
 
     <form th:if="${mode == 'edit'}"
           th:action="@{/admin/tours/{id}/delete(id=${tourId})}"
           method="post">
-        <button class="danger" type="submit" th:text="#{common.delete}">
+        <button type="submit" th:text="#{common.delete}">
             Delete
         </button>
     </form>
 </main>
+
+<script>
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (startDateInput) {
+        startDateInput.min = formatDate(today);
+    }
+
+    if (endDateInput) {
+        endDateInput.min = formatDate(tomorrow);
+    }
+
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', function () {
+            if (!startDateInput.value) {
+                return;
+            }
+
+            const selectedStartDate = new Date(startDateInput.value);
+            selectedStartDate.setDate(selectedStartDate.getDate() + 1);
+
+            endDateInput.min = formatDate(selectedStartDate);
+
+            if (endDateInput.value && endDateInput.value <= startDateInput.value) {
+                endDateInput.value = '';
+            }
+        });
+    }
+</script>
 
 </body>
 </html>

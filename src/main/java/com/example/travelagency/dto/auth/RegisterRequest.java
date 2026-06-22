@@ -1,5 +1,6 @@
 package com.example.travelagency.dto.auth;
 
+import com.example.travelagency.validation.StrongPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -16,7 +17,8 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "{validation.password.required}")
-    @Size(min = 6, max = 100, message = "{validation.password.size}")
+    @Size(min = 8, max = 100, message = "{validation.password.size}")
+    @StrongPassword
     private String password;
 
     @NotBlank(message = "{validation.firstName.required}")

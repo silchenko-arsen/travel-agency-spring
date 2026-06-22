@@ -27,10 +27,13 @@
 
         <div>
             <label for="email" th:text="#{auth.login.email}">Email</label>
+
             <input id="email"
                    type="email"
                    th:field="*{email}"
-                   th:placeholder="#{auth.login.email.placeholder}">
+                   th:placeholder="#{auth.login.email.placeholder}"
+                   required
+                   autocomplete="email">
 
             <div class="error"
                  th:if="${#fields.hasErrors('email')}"
@@ -40,10 +43,13 @@
 
         <div>
             <label for="password" th:text="#{auth.login.password}">Password</label>
+
             <input id="password"
                    type="password"
                    th:field="*{password}"
-                   th:placeholder="#{auth.login.password.placeholder}">
+                   th:placeholder="#{auth.login.password.placeholder}"
+                   required
+                   autocomplete="current-password">
 
             <div class="error"
                  th:if="${#fields.hasErrors('password')}"
