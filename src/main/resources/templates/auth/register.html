@@ -7,20 +7,7 @@
 </head>
 <body>
 
-<header>
-    <h1 th:text="#{app.title}">Travel Agency</h1>
-
-    <nav>
-        <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
-        <a th:href="@{/auth/login}" th:text="#{auth.login.title}">Login</a>
-    </nav>
-</header>
-
-<div class="language-switch">
-    <a th:href="@{/auth/register(lang='uk')}">UA</a>
-    <span>|</span>
-    <a th:href="@{/auth/register(lang='en')}">EN</a>
-</div>
+<div th:replace="~{fragments/nav :: nav}"></div>
 
 <main class="container">
     <h2 th:text="#{auth.register.title}">Register</h2>

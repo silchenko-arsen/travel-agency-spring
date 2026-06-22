@@ -11,18 +11,54 @@
     <h1 th:text="#{nav.tours}">Tours</h1>
     <p class="success" th:if="${success}" th:text="${success}"></p>
     <form class="search" th:action="@{/tours}" method="get">
-        <input name="keyword" th:value="${keyword}" placeholder="Search country, city, title">
+        <input type="text"
+               name="keyword"
+               th:value="${keyword}"
+               th:placeholder="#{tour.search.placeholder}">
+
         <select name="sort">
-            <option value="startDate" th:selected="${sort == 'startDate'}">Start date</option>
-            <option value="price" th:selected="${sort == 'price'}">Price</option>
-            <option value="title" th:selected="${sort == 'title'}">Title</option>
-            <option value="country" th:selected="${sort == 'country'}">Country</option>
+            <option value="startDate"
+                    th:selected="${sort == 'startDate'}"
+                    th:text="#{tour.sort.startDate}">
+                Start date
+            </option>
+
+            <option value="price"
+                    th:selected="${sort == 'price'}"
+                    th:text="#{tour.sort.price}">
+                Price
+            </option>
+
+            <option value="title"
+                    th:selected="${sort == 'title'}"
+                    th:text="#{tour.sort.title}">
+                Title
+            </option>
+
+            <option value="country"
+                    th:selected="${sort == 'country'}"
+                    th:text="#{tour.sort.country}">
+                Country
+            </option>
         </select>
+
         <select name="direction">
-            <option value="asc" th:selected="${direction == 'asc'}">ASC</option>
-            <option value="desc" th:selected="${direction == 'desc'}">DESC</option>
+            <option value="asc"
+                    th:selected="${direction == 'asc'}"
+                    th:text="#{sort.asc}">
+                ASC
+            </option>
+
+            <option value="desc"
+                    th:selected="${direction == 'desc'}"
+                    th:text="#{sort.desc}">
+                DESC
+            </option>
         </select>
-        <button type="submit" th:text="#{common.search}">Search</button>
+
+        <button type="submit" th:text="#{common.search}">
+            Search
+        </button>
     </form>
     <p sec:authorize="hasRole('ADMIN')"><a class="button" th:href="@{/admin/tours/new}">Add tour</a></p>
 

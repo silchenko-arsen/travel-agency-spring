@@ -1,13 +1,59 @@
-<nav class="nav" th:fragment="nav" xmlns:sec="http://www.w3.org/1999/xhtml">
+<nav class="nav"
+     th:fragment="nav"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
     <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
-    <a sec:authorize="hasRole('USER')" th:href="@{/profile}" th:text="#{nav.profile}">Profile</a>
-    <a sec:authorize="hasRole('USER')" th:href="@{/bookings}" th:text="#{nav.bookings}">Bookings</a>
-    <a sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/manager/bookings}" th:text="#{nav.manager}">Manager</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" th:text="#{nav.admin}">Admin</a>
+
+    <a th:href="@{/profile}"
+       sec:authorize="isAuthenticated()"
+       th:text="#{nav.profile}">
+        Profile
+    </a>
+
+    <a th:href="@{/bookings}"
+       sec:authorize="isAuthenticated()"
+       th:text="#{nav.bookings}">
+        My bookings
+    </a>
+
+    <a th:href="@{/manager/bookings}"
+       sec:authorize="hasAnyRole('MANAGER', 'ADMIN')"
+       th:text="#{nav.bookedTours}">
+        Booked tours
+    </a>
+
+    <a th:href="@{/admin/users}"
+       sec:authorize="hasRole('ADMIN')"
+       th:text="#{nav.users}">
+        Users
+    </a>
+
     <span class="spacer"></span>
-    <a th:href="@{?lang=en}">EN</a>
-    <a th:href="@{?lang=uk}">UA</a>
-    <a sec:authorize="isAnonymous()" th:href="@{/auth/login}" th:text="#{nav.login}">Login</a>
-    <a sec:authorize="isAnonymous()" th:href="@{/auth/register}" th:text="#{nav.register}">Register</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/auth/logout}" th:text="#{nav.logout}">Logout</a>
+
+    <a href="?lang=en">EN</a>
+    <a href="?lang=uk">UA</a>
+
+    <a th:href="@{/auth/login}"
+       sec:authorize="!isAuthenticated()"
+       th:text="#{nav.login}">
+        Login
+    </a>
+
+    <a th:href="@{/auth/register}"
+       sec:authorize="!isAuthenticated()"
+       th:text="#{nav.register}">
+        Register
+    </a>
+
+    <form th:action="@{/auth/logout}"
+          method="post"
+          class="nav-logout-form"
+          sec:authorize="isAuthenticated()">
+        <button type="submit"
+                class="nav-logout-button"
+                th:text="#{nav.logout}">
+            Logout
+        </button>
+    </form>
 </nav>

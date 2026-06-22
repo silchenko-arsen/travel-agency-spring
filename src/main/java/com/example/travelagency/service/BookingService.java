@@ -34,10 +34,10 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Booking> getAllBookings(Pageable pageable) {
-        return bookingRepository.findAll(pageable);
+    public Page<Booking> searchAllBookings(String keyword, BookingStatus status, Pageable pageable) {
+        return bookingRepository.searchAll(keyword, status, pageable);
     }
-
+    
     @Transactional
     public Booking bookTour(String email, Long tourId) {
         AppUser user = userRepository.findByEmail(email)
@@ -111,20 +111,41 @@ public class BookingService {
     }
 
     @Transactional
-    public void changeRegisteredStatus(Long bookingId, BookingStatus newStatus) {
+    public void changeStatus(Long bookingId, BookingStatus newStatus) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        if (booking.getStatus() != BookingStatus.REGISTERED) {
-            throw new BusinessException("Manager can change only REGISTERED bookings");
+        if (newStatus == null) {
+            throw new BusinessException("booking.error.statusRequired");
         }
-        if (newStatus != BookingStatus.PAID && newStatus != BookingStatus.CANCELED) {
-            throw new BusinessException("Unsupported status");
+
+        BookingStatus oldStatus = booking.getStatus();
+
+        if (oldStatus == newStatus) {
+            return;
         }
-        if (newStatus == BookingStatus.CANCELED) {
-            booking.getTour().setAvailablePlaces(booking.getTour().getAvailablePlaces() + 1);
+
+        Tour tour = booking.getTour();
+
+        if (oldStatus == BookingStatus.CANCELED) {
+            if (tour.getAvailablePlaces() <= 0) {
+                throw new BusinessException("booking.error.noPlaces");
+            }
+
+            tour.setAvailablePlaces(tour.getAvailablePlaces() - 1);
         }
+
+        if (oldStatus != BookingStatus.CANCELED && newStatus == BookingStatus.CANCELED) {
+            tour.setAvailablePlaces(tour.getAvailablePlaces() + 1);
+        }
+
         booking.setStatus(newStatus);
-        log.info("Booking status changed by manager/admin: bookingId={} status={}", bookingId, newStatus);
+
+        log.info(
+                "Booking status changed: bookingId={} oldStatus={} newStatus={}",
+                bookingId,
+                oldStatus,
+                newStatus
+        );
     }
 }

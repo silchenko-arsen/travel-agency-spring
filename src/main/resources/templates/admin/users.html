@@ -1,34 +1,90 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><title>Users</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" th:href="@{/css/style.css}">
+<head>
+    <title th:text="#{admin.users.title}">Users</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/nav :: nav}"></div>
-<main class="container">
-    <h1>Users</h1>
-    <form th:action="@{/admin/users}" method="get">
-        <input name="keyword" th:value="${keyword}" placeholder="Search users">
-        <button type="submit" th:text="#{common.search}">Search</button>
+
+<main class="container card">
+    <h1 th:text="#{admin.users.title}">Users</h1>
+
+    <form class="filter-form" th:action="@{/admin/users}" method="get">
+        <input type="text"
+               name="keyword"
+               th:value="${keyword}"
+               th:placeholder="#{admin.users.search.placeholder}">
+
+        <button type="submit" th:text="#{common.search}">
+            Search
+        </button>
     </form>
+
     <table>
-        <tr><th>Email</th><th>Name</th><th>Role</th><th>Verified</th><th>Blocked</th><th th:text="#{common.actions}">Actions</th></tr>
+        <thead>
+        <tr>
+            <th th:text="#{admin.users.email}">Email</th>
+            <th th:text="#{admin.users.name}">Name</th>
+            <th th:text="#{admin.users.role}">Role</th>
+            <th th:text="#{admin.users.verified}">Verified</th>
+            <th th:text="#{admin.users.blocked}">Blocked</th>
+            <th th:text="#{common.actions}">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
         <tr th:each="user : ${users.content}">
-            <td th:text="${user.email}"></td>
-            <td th:text="${user.firstName + ' ' + user.lastName}"></td>
-            <td th:text="${user.role}"></td>
-            <td th:text="${user.verified}"></td>
-            <td th:text="${user.blocked}"></td>
+            <td th:text="${user.email}">email</td>
+            <td th:text="${user.firstName + ' ' + user.lastName}">Name</td>
+
+            <td th:with="roleKey=${'role.' + user.role.name()}"
+                th:text="#{${roleKey}}">
+                Role
+            </td>
+
+            <td th:text="${user.verified} ? #{common.yes} : #{common.no}">
+                Yes
+            </td>
+
+            <td th:text="${user.blocked} ? #{common.yes} : #{common.no}">
+                No
+            </td>
+
             <td>
-                <form th:if="${user.role.name() != 'ROLE_ADMIN'}" th:action="@{/admin/users/{id}/block(id=${user.id})}" method="post">
+                <form th:action="@{/admin/users/{id}/block(id=${user.id})}" method="post">
                     <input type="hidden" name="blocked" th:value="${!user.blocked}">
-                    <button type="submit" th:text="${user.blocked} ? 'Unblock' : 'Block'">Block</button>
+
+                    <button type="submit"
+                            th:text="${user.blocked} ? #{admin.users.unblock} : #{admin.users.block}">
+                        Block
+                    </button>
                 </form>
             </td>
         </tr>
+        </tbody>
     </table>
+
+    <div class="pagination">
+        <a th:if="${users.hasPrevious()}"
+           th:href="@{/admin/users(page=${users.number - 1}, keyword=${keyword})}"
+           th:text="#{pagination.prev}">
+            Prev
+        </a>
+
+        <span th:text="${users.number + 1 + ' / ' + users.totalPages}">
+            1 / 1
+        </span>
+
+        <a th:if="${users.hasNext()}"
+           th:href="@{/admin/users(page=${users.number + 1}, keyword=${keyword})}"
+           th:text="#{pagination.next}">
+            Next
+        </a>
+    </div>
 </main>
+
 </body>
 </html>

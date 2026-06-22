@@ -7,19 +7,7 @@
 </head>
 <body>
 
-<header>
-    <h1 th:text="#{app.title}">Travel Agency</h1>
-
-    <nav>
-        <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
-    </nav>
-</header>
-
-<div class="language-switch">
-    <a th:href="@{/auth/login(lang='uk')}">UA</a>
-    <span>|</span>
-    <a th:href="@{/auth/login(lang='en')}">EN</a>
-</div>
+<div th:replace="~{fragments/nav :: nav}"></div>
 
 <main class="container">
     <h2 th:text="#{auth.login.title}">Login</h2>

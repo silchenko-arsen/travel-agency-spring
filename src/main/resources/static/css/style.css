@@ -116,3 +116,48 @@ th, td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; vert
 .language-switch a:hover {
     text-decoration: underline;
 }
+.nav-logout-form {
+    margin: 0;
+}
+
+.nav-logout-button {
+    background: transparent;
+    color: white;
+    padding: 0;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nav-logout-button:hover {
+    text-decoration: underline;
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: 1fr 180px 150px;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.inline-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+}
+
+.inline-form select {
+    min-width: 150px;
+}
+
+@media (max-width: 800px) {
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .inline-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

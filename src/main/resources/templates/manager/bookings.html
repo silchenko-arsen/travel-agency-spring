@@ -1,32 +1,122 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><title>Manager bookings</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" th:href="@{/css/style.css}">
+<head>
+    <title th:text="#{manager.bookings.title}">Booked tours</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/nav :: nav}"></div>
-<main class="container">
-    <h1>Manager bookings</h1>
+
+<main class="container card">
+    <h1 th:text="#{manager.bookings.title}">Booked tours</h1>
+
+    <form class="filter-form" th:action="@{/manager/bookings}" method="get">
+        <input type="text"
+               name="keyword"
+               th:value="${keyword}"
+               th:placeholder="#{manager.bookings.search.placeholder}">
+
+        <select name="status">
+            <option value="" th:text="#{manager.bookings.status.all}">
+                All statuses
+            </option>
+
+            <option th:each="status : ${statuses}"
+                    th:with="statusKey=${'booking.status.' + status.name()}"
+                    th:value="${status.name()}"
+                    th:selected="${selectedStatus == status.name()}"
+                    th:text="#{${statusKey}}">
+                Status
+            </option>
+        </select>
+
+        <button type="submit" th:text="#{common.search}">
+            Search
+        </button>
+    </form>
+
     <table>
-        <tr><th>ID</th><th>User</th><th>Tour</th><th>Status</th><th>Change status</th></tr>
+        <thead>
+        <tr>
+            <th th:text="#{booking.id}">ID</th>
+            <th th:text="#{booking.user}">User</th>
+            <th th:text="#{booking.tour}">Tour</th>
+            <th th:text="#{booking.status}">Status</th>
+            <th th:text="#{booking.changeStatus}">Change status</th>
+        </tr>
+        </thead>
+
+        <tbody>
         <tr th:each="booking : ${bookings.content}">
-            <td th:text="${booking.id}"></td>
-            <td th:text="${booking.user.email}"></td>
-            <td th:text="${booking.tour.title}"></td>
-            <td th:text="${booking.status}"></td>
+            <td th:text="${booking.id}">1</td>
+
             <td>
-                <form th:if="${booking.status.name() == 'REGISTERED'}" th:action="@{/manager/bookings/{id}/status(id=${booking.id})}" method="post">
+                <div th:text="${booking.user.email}">user@email.com</div>
+                <small th:text="${booking.user.firstName + ' ' + booking.user.lastName}">
+                    Name
+                </small>
+            </td>
+
+            <td>
+                <div th:text="${booking.tour.title}">Tour</div>
+                <small th:text="${booking.tour.country + ', ' + booking.tour.city}">
+                    Country, City
+                </small>
+            </td>
+
+            <td th:with="statusKey=${'booking.status.' + booking.status.name()}"
+                th:text="#{${statusKey}}">
+                REGISTERED
+            </td>
+
+            <td>
+                <form class="inline-form"
+                      th:action="@{/manager/bookings/{id}/status(id=${booking.id})}"
+                      method="post">
+
+                    <input type="hidden" name="keyword" th:value="${keyword}">
+                    <input type="hidden" name="selectedStatus" th:value="${selectedStatus}">
+                    <input type="hidden" name="page" th:value="${bookings.number}">
+
                     <select name="status">
-                        <option value="PAID">PAID</option>
-                        <option value="CANCELED">CANCELED</option>
+                        <option th:each="status : ${statuses}"
+                                th:with="statusKey=${'booking.status.' + status.name()}"
+                                th:value="${status.name()}"
+                                th:selected="${booking.status == status}"
+                                th:text="#{${statusKey}}">
+                            Status
+                        </option>
                     </select>
-                    <button type="submit">Update</button>
+
+                    <button type="submit" th:text="#{booking.update}">
+                        Update
+                    </button>
                 </form>
             </td>
         </tr>
+        </tbody>
     </table>
+
+    <div class="pagination">
+        <a th:if="${bookings.hasPrevious()}"
+           th:href="@{/manager/bookings(page=${bookings.number - 1}, size=${size}, keyword=${keyword}, status=${selectedStatus})}"
+           th:text="#{pagination.prev}">
+            Prev
+        </a>
+
+        <span th:text="${bookings.number + 1 + ' / ' + bookings.totalPages}">
+            1 / 1
+        </span>
+
+        <a th:if="${bookings.hasNext()}"
+           th:href="@{/manager/bookings(page=${bookings.number + 1}, size=${size}, keyword=${keyword}, status=${selectedStatus})}"
+           th:text="#{pagination.next}">
+            Next
+        </a>
+    </div>
 </main>
+
 </body>
 </html>
