@@ -32,7 +32,7 @@
 
     <h2 th:text="#{profile.update.title}">Update info</h2>
 
-    <form th:action="@{/profile}" th:object="${profileForm}" method="post">
+    <form th:action="@{/templates/profile}" th:object="${profileForm}" method="post">
         <label for="firstName" th:text="#{profile.firstName}">First name</label>
 
         <input id="firstName"

@@ -47,7 +47,7 @@ public class ProfileController {
             model.addAttribute("passwordForm", new ChangePasswordRequest());
         }
 
-        return "profile";
+        return "profile/profile";
     }
 
     @PostMapping
@@ -64,7 +64,7 @@ public class ProfileController {
             model.addAttribute("user", user);
             model.addAttribute("balanceForm", new BalanceTopUpRequest());
             model.addAttribute("passwordForm", new ChangePasswordRequest());
-            return "profile";
+            return "profile/profile";
         }
 
         userService.updateProfile(authentication.getName(), request);
@@ -91,7 +91,7 @@ public class ProfileController {
             model.addAttribute("user", user);
             model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
             model.addAttribute("passwordForm", new ChangePasswordRequest());
-            return "profile";
+            return "profile/profile";
         }
 
         userService.topUpBalance(authentication.getName(), request);
@@ -118,7 +118,7 @@ public class ProfileController {
             model.addAttribute("user", user);
             model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
             model.addAttribute("balanceForm", new BalanceTopUpRequest());
-            return "profile";
+            return "profile/profile";
         }
 
         try {
@@ -139,7 +139,7 @@ public class ProfileController {
             model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
             model.addAttribute("balanceForm", new BalanceTopUpRequest());
             model.addAttribute("passwordError", messageService.get(e.getCode()));
-            return "profile";
+            return "profile/profile";
         }
     }
 }
