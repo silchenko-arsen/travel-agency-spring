@@ -32,7 +32,10 @@ public class BookingController {
     ) {
         model.addAttribute(
                 "bookings",
-                bookingService.getUserBookings(authentication.getName(), PageRequest.of(page, size))
+                bookingService.getUserBookings(
+                        authentication.getName(),
+                        PageRequest.of(page, size)
+                )
         );
 
         return "bookings/list";
