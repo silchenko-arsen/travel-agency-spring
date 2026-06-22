@@ -105,22 +105,43 @@
 
     <h2 th:text="#{profile.password.title}">Change password</h2>
 
-    <form th:action="@{/profile/password}" method="post">
-        <label for="oldPassword" th:text="#{profile.password.old}">Old password</label>
+    <form th:action="@{/profile/password}"
+          th:object="${passwordForm}"
+          method="post">
+
+        <label for="oldPassword" th:text="#{profile.password.old}">
+            Old password
+        </label>
 
         <input id="oldPassword"
                type="password"
-               name="oldPassword"
+               th:field="*{oldPassword}"
                required
                autocomplete="current-password">
 
-        <label for="newPassword" th:text="#{profile.password.new}">New password</label>
+        <div class="error"
+             th:if="${#fields.hasErrors('oldPassword')}"
+             th:errors="*{oldPassword}">
+        </div>
+
+        <label for="newPassword" th:text="#{profile.password.new}">
+            New password
+        </label>
 
         <input id="newPassword"
                type="password"
-               name="newPassword"
+               th:field="*{newPassword}"
                required
+               minlength="8"
+               maxlength="100"
+               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
+               th:title="#{validation.password.strong}"
                autocomplete="new-password">
+
+        <div class="error"
+             th:if="${#fields.hasErrors('newPassword')}"
+             th:errors="*{newPassword}">
+        </div>
 
         <button type="submit" th:text="#{profile.password.button}">
             Update password

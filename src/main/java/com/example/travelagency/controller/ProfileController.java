@@ -1,6 +1,7 @@
 package com.example.travelagency.controller;
 
 import com.example.travelagency.domain.AppUser;
+import com.example.travelagency.dto.auth.ChangePasswordRequest;
 import com.example.travelagency.dto.user.BalanceTopUpRequest;
 import com.example.travelagency.dto.user.UserUpdateRequest;
 import com.example.travelagency.exception.BusinessException;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -34,8 +34,18 @@ public class ProfileController {
         AppUser user = userService.getByEmail(authentication.getName());
 
         model.addAttribute("user", user);
-        model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
-        model.addAttribute("balanceForm", new BalanceTopUpRequest());
+
+        if (!model.containsAttribute("profileForm")) {
+            model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
+        }
+
+        if (!model.containsAttribute("balanceForm")) {
+            model.addAttribute("balanceForm", new BalanceTopUpRequest());
+        }
+
+        if (!model.containsAttribute("passwordForm")) {
+            model.addAttribute("passwordForm", new ChangePasswordRequest());
+        }
 
         return "profile";
     }
@@ -53,6 +63,7 @@ public class ProfileController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("user", user);
             model.addAttribute("balanceForm", new BalanceTopUpRequest());
+            model.addAttribute("passwordForm", new ChangePasswordRequest());
             return "profile";
         }
 
@@ -71,14 +82,16 @@ public class ProfileController {
             @Valid @ModelAttribute("balanceForm") BalanceTopUpRequest request,
             BindingResult bindingResult,
             Authentication authentication,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
+        AppUser user = userService.getByEmail(authentication.getName());
+
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute(
-                    "balanceError",
-                    messageService.get("validation.balance.amount.min")
-            );
-            return "redirect:/profile";
+            model.addAttribute("user", user);
+            model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
+            model.addAttribute("passwordForm", new ChangePasswordRequest());
+            return "profile";
         }
 
         userService.topUpBalance(authentication.getName(), request);
@@ -93,25 +106,40 @@ public class ProfileController {
 
     @PostMapping("/password")
     public String changePassword(
-            @RequestParam String oldPassword,
-            @RequestParam String newPassword,
+            @Valid @ModelAttribute("passwordForm") ChangePasswordRequest request,
+            BindingResult bindingResult,
             Authentication authentication,
+            Model model,
             RedirectAttributes redirectAttributes
     ) {
+        AppUser user = userService.getByEmail(authentication.getName());
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("user", user);
+            model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
+            model.addAttribute("balanceForm", new BalanceTopUpRequest());
+            return "profile";
+        }
+
         try {
-            userService.changePassword(authentication.getName(), oldPassword, newPassword);
+            userService.changePassword(
+                    authentication.getName(),
+                    request.getOldPassword(),
+                    request.getNewPassword()
+            );
 
             redirectAttributes.addFlashAttribute(
                     "passwordSuccess",
                     messageService.get("profile.success.passwordChanged")
             );
-        } catch (BusinessException e) {
-            redirectAttributes.addFlashAttribute(
-                    "passwordError",
-                    messageService.get(e.getCode())
-            );
-        }
 
-        return "redirect:/profile";
+            return "redirect:/profile";
+        } catch (BusinessException e) {
+            model.addAttribute("user", user);
+            model.addAttribute("profileForm", modelMapper.map(user, UserUpdateRequest.class));
+            model.addAttribute("balanceForm", new BalanceTopUpRequest());
+            model.addAttribute("passwordError", messageService.get(e.getCode()));
+            return "profile";
+        }
     }
 }
