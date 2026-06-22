@@ -1,5 +1,7 @@
 package com.example.travelagency.controller;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import com.example.travelagency.dto.auth.LoginRequest;
 import com.example.travelagency.dto.auth.RegisterRequest;
 import com.example.travelagency.dto.auth.VerifyEmailRequest;
@@ -86,10 +88,12 @@ public class AuthController {
         try {
             authService.register(request);
 
-            model.addAttribute("verifyEmailRequest", new VerifyEmailRequest());
-            model.addAttribute("successMessage", messageService.get("auth.success.register"));
+            String email = URLEncoder.encode(
+                    request.getEmail(),
+                    StandardCharsets.UTF_8
+            );
 
-            return "auth/verify";
+            return "redirect:/auth/verify?email=" + email + "&registered=true";
         } catch (BusinessException e) {
             model.addAttribute("registerError", messageService.get(e.getCode()));
             return "auth/register";
@@ -97,8 +101,20 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public String verifyPage(Model model) {
-        model.addAttribute("verifyEmailRequest", new VerifyEmailRequest());
+    public String verifyPage(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String registered,
+            Model model
+    ) {
+        VerifyEmailRequest request = new VerifyEmailRequest();
+        request.setEmail(email);
+
+        model.addAttribute("verifyEmailRequest", request);
+
+        if (registered != null) {
+            model.addAttribute("successMessage", messageService.get("auth.success.register"));
+        }
+
         return "auth/verify";
     }
 
@@ -126,6 +142,9 @@ public class AuthController {
             @RequestParam String email,
             Model model
     ) {
+        VerifyEmailRequest request = new VerifyEmailRequest();
+        request.setEmail(email);
+
         try {
             authService.resendVerificationCode(email);
             model.addAttribute("successMessage", messageService.get("auth.success.codeSent"));
@@ -133,14 +152,56 @@ public class AuthController {
             model.addAttribute("verifyError", messageService.get(e.getCode()));
         }
 
-        model.addAttribute("verifyEmailRequest", new VerifyEmailRequest());
-
+        model.addAttribute("verifyEmailRequest", request);
         return "auth/verify";
     }
 
     @GetMapping("/resend-code")
     public String resendCodeGet() {
         return "redirect:/auth/verify";
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(
+            @RequestParam String email,
+            Model model
+    ) {
+        try {
+            authService.requestPasswordReset(email);
+            model.addAttribute("successMessage", messageService.get("auth.success.resetTokenSent"));
+        } catch (BusinessException e) {
+            model.addAttribute("resetError", messageService.get(e.getCode()));
+        }
+
+        return "auth/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage() {
+        return "auth/reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @RequestParam String email,
+            @RequestParam String token,
+            @RequestParam String newPassword,
+            Model model
+    ) {
+        try {
+            authService.resetPassword(email, token, newPassword);
+            model.addAttribute("loginRequest", new LoginRequest());
+            model.addAttribute("successMessage", messageService.get("auth.success.passwordReset"));
+            return "auth/login";
+        } catch (BusinessException e) {
+            model.addAttribute("resetError", messageService.get(e.getCode()));
+            return "auth/reset-password";
+        }
     }
 
     @PostMapping("/logout")

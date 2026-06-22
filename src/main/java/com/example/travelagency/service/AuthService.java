@@ -134,6 +134,48 @@ public class AuthService {
         log.info("Verification code resent to {}", email);
     }
 
+    public void requestPasswordReset(String emailValue) {
+        String email = normalizeEmail(emailValue);
+
+        AppUser user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new BusinessException("auth.error.userNotFound"));
+
+        String token = generateVerificationCode();
+
+        user.setResetToken(token);
+        user.setResetTokenExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        userRepository.save(user);
+
+        emailService.sendResetToken(email, token);
+
+        log.info("Password reset token sent to {}", email);
+    }
+
+    public void resetPassword(String emailValue, String token, String newPassword) {
+        String email = normalizeEmail(emailValue);
+
+        AppUser user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new BusinessException("auth.error.userNotFound"));
+
+        if (user.getResetToken() == null || !user.getResetToken().equals(token)) {
+            throw new BusinessException("auth.error.invalidResetToken");
+        }
+
+        if (user.getResetTokenExpiresAt() == null ||
+                user.getResetTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BusinessException("auth.error.resetTokenExpired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiresAt(null);
+
+        userRepository.save(user);
+
+        log.info("Password was reset for {}", email);
+    }
+
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
     }

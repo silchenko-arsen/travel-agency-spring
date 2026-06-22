@@ -66,7 +66,7 @@ public class ProfileController {
         return "redirect:/profile";
     }
 
-    @PostMapping("/profile/password")
+    @PostMapping("/password")
     public String changePassword(
             @RequestParam String oldPassword,
             @RequestParam String newPassword,

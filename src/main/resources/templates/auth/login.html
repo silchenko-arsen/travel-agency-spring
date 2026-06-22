@@ -2,32 +2,48 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login | Travel Agency</title>
+    <title th:text="#{auth.login.pageTitle}">Login | Travel Agency</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
 <header>
-    <h1>Travel Agency</h1>
+    <h1 th:text="#{app.title}">Travel Agency</h1>
+
     <nav>
-        <a th:href="@{/tours}">Tours</a>
+        <a th:href="@{/tours}" th:text="#{nav.tours}">Tours</a>
     </nav>
 </header>
 
-<main class="container">
-    <h2>Login</h2>
+<div class="language-switch">
+    <a th:href="@{/auth/login(lang='uk')}">UA</a>
+    <span>|</span>
+    <a th:href="@{/auth/login(lang='en')}">EN</a>
+</div>
 
-    <div class="success" th:if="${param.verified}">
+<main class="container">
+    <h2 th:text="#{auth.login.title}">Login</h2>
+
+    <div class="success"
+         th:if="${param.verified}"
+         th:text="#{auth.login.verified}">
         Email verified successfully. You can login now.
     </div>
 
-    <div class="error" th:if="${loginError}" th:text="${loginError}"></div>
+    <div class="error"
+         th:if="${loginError}"
+         th:text="${loginError}">
+    </div>
 
     <form th:action="@{/auth/login}" th:object="${loginRequest}" method="post">
 
         <div>
-            <label for="email">Email</label>
-            <input id="email" type="email" th:field="*{email}" placeholder="email@example.com">
+            <label for="email" th:text="#{auth.login.email}">Email</label>
+            <input id="email"
+                   type="email"
+                   th:field="*{email}"
+                   th:placeholder="#{auth.login.email.placeholder}">
+
             <div class="error"
                  th:if="${#fields.hasErrors('email')}"
                  th:errors="*{email}">
@@ -35,25 +51,35 @@
         </div>
 
         <div>
-            <label for="password">Password</label>
-            <input id="password" type="password" th:field="*{password}" placeholder="Password">
+            <label for="password" th:text="#{auth.login.password}">Password</label>
+            <input id="password"
+                   type="password"
+                   th:field="*{password}"
+                   th:placeholder="#{auth.login.password.placeholder}">
+
             <div class="error"
                  th:if="${#fields.hasErrors('password')}"
                  th:errors="*{password}">
             </div>
         </div>
 
-        <button type="submit">Login</button>
+        <button type="submit" th:text="#{auth.login.button}">
+            Login
+        </button>
     </form>
 
     <p>
-        Forgot password?
-        <a th:href="@{/auth/forgot-password}">Reset password</a>
+        <span th:text="#{auth.login.forgotQuestion}">Forgot password?</span>
+        <a th:href="@{/auth/forgot-password}" th:text="#{auth.login.resetLink}">
+            Reset password
+        </a>
     </p>
 
     <p>
-        Don’t have an account?
-        <a th:href="@{/auth/register}">Register</a>
+        <span th:text="#{auth.login.noAccount}">Don’t have an account?</span>
+        <a th:href="@{/auth/register}" th:text="#{auth.login.registerLink}">
+            Register
+        </a>
     </p>
 </main>
 
