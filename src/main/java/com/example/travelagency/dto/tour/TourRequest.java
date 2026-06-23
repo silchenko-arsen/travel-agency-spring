@@ -48,10 +48,6 @@ public class TourRequest {
 
     @AssertTrue(message = "{validation.tour.dates.invalid}")
     public boolean isDateRangeValid() {
-        if (startDate == null || endDate == null) {
-            return true;
-        }
-
         return startDate.isBefore(endDate);
     }
 }

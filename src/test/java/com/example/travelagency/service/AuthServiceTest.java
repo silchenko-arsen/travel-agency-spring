@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -525,5 +526,38 @@ class AuthServiceTest {
 
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void normalizeEmail_whenEmailIsNull_shouldReturnNull() {
+        String result = ReflectionTestUtils.invokeMethod(
+                authService,
+                "normalizeEmail",
+                (String) null
+        );
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void normalizeEmail_whenEmailHasSpacesAndUppercase_shouldTrimAndLowercase() {
+        String result = ReflectionTestUtils.invokeMethod(
+                authService,
+                "normalizeEmail",
+                " USER@EMAIL.COM "
+        );
+
+        assertThat(result).isEqualTo("user@email.com");
+    }
+
+    @Test
+    void normalizeEmail_whenEmailHasNoSpaces_shouldLowercaseOnly() {
+        String result = ReflectionTestUtils.invokeMethod(
+                authService,
+                "normalizeEmail",
+                "USER@EMAIL.COM"
+        );
+
+        assertThat(result).isEqualTo("user@email.com");
     }
 }

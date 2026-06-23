@@ -343,28 +343,6 @@ class BookingServiceTest {
     }
 
     @Test
-    void changeStatus_whenBookingNotFound_shouldThrowNotFoundException() {
-        when(bookingRepository.findById(10L))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Booking not found");
-    }
-
-    @Test
-    void changeStatus_whenNewStatusIsNull_shouldThrowBusinessException() {
-        Booking booking = booking(user(), tour(), BookingStatus.REGISTERED);
-
-        when(bookingRepository.findById(10L))
-                .thenReturn(Optional.of(booking));
-
-        assertThatThrownBy(() -> bookingService.changeStatus(10L, null))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("booking.error.statusRequired");
-    }
-
-    @Test
     void changeStatus_whenOldStatusEqualsNewStatus_shouldReturnWithoutChanging() {
         Tour tour = tour();
         tour.setAvailablePlaces(5);
@@ -394,26 +372,6 @@ class BookingServiceTest {
 
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
         assertThat(tour.getAvailablePlaces()).isEqualTo(2);
-    }
-
-    @Test
-    void changeStatus_fromRegisteredToCanceled_shouldIncreasePlacesWithoutRefund() {
-        AppUser user = user();
-        user.setBalance(new BigDecimal("100"));
-
-        Tour tour = tour();
-        tour.setAvailablePlaces(2);
-
-        Booking booking = booking(user, tour, BookingStatus.REGISTERED);
-
-        when(bookingRepository.findById(10L))
-                .thenReturn(Optional.of(booking));
-
-        bookingService.changeStatus(10L, BookingStatus.CANCELED);
-
-        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
-        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
-        assertThat(user.getBalance()).isEqualByComparingTo("100");
     }
 
     @Test
@@ -454,21 +412,6 @@ class BookingServiceTest {
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
         assertThat(tour.getAvailablePlaces()).isEqualTo(3);
         assertThat(user.getBalance()).isEqualByComparingTo("1000");
-    }
-
-    @Test
-    void changeStatus_fromCanceledToPaid_whenNoPlaces_shouldThrowBusinessException() {
-        Tour tour = tour();
-        tour.setAvailablePlaces(0);
-
-        Booking booking = booking(user(), tour, BookingStatus.CANCELED);
-
-        when(bookingRepository.findById(10L))
-                .thenReturn(Optional.of(booking));
-
-        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("booking.error.noPlaces");
     }
 
     @Test
@@ -529,6 +472,262 @@ class BookingServiceTest {
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.PAID);
         assertThat(tour.getAvailablePlaces()).isEqualTo(4);
         assertThat(user.getBalance()).isEqualByComparingTo("1000");
+    }
+
+    @Test
+    void changeStatus_whenBookingNotFound_shouldThrowNotFoundException() {
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Booking not found");
+    }
+
+    @Test
+    void changeStatus_whenNewStatusIsNull_shouldThrowBusinessException() {
+        Booking booking = booking(user(), tour(), BookingStatus.REGISTERED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.statusRequired");
+    }
+
+    @Test
+    void changeStatus_whenOldStatusEqualsNewStatus_shouldReturnWithoutChangingAnything() {
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user(), tour, BookingStatus.REGISTERED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.REGISTERED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(5);
+    }
+
+    @Test
+    void changeStatus_fromCanceledToRegistered_whenPlacesExist_shouldDecreasePlaces() {
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user(), tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.REGISTERED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(4);
+    }
+
+    @Test
+    void changeStatus_fromCanceledToRegistered_whenNoPlaces_shouldThrowBusinessException() {
+        Tour tour = tour();
+        tour.setAvailablePlaces(0);
+
+        Booking booking = booking(user(), tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.REGISTERED))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.noPlaces");
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isZero();
+    }
+
+    @Test
+    void changeStatus_fromRegisteredToCanceled_shouldIncreasePlacesWithoutRefund() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("100"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(2);
+
+        Booking booking = booking(user, tour, BookingStatus.REGISTERED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.CANCELED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
+        assertThat(user.getBalance()).isEqualByComparingTo("100");
+    }
+
+    @Test
+    void changeStatus_fromPaidToCanceled_whenBalanceExists_shouldRefundAndIncreasePlaces() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("100"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(2);
+
+        Booking booking = booking(user, tour, BookingStatus.PAID);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.CANCELED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
+        assertThat(user.getBalance()).isEqualByComparingTo("1100");
+    }
+
+    @Test
+    void changeStatus_fromPaidToCanceled_whenBalanceIsNull_shouldRefundFromZeroAndIncreasePlaces() {
+        AppUser user = user();
+        user.setBalance(null);
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(2);
+
+        Booking booking = booking(user, tour, BookingStatus.PAID);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.CANCELED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
+        assertThat(user.getBalance()).isEqualByComparingTo("1000");
+    }
+
+    @Test
+    void changeStatus_fromCanceledToPaid_whenNoPlaces_shouldThrowBusinessException() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("2000"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(0);
+
+        Booking booking = booking(user, tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.noPlaces");
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isZero();
+    }
+
+    @Test
+    void changeStatus_fromCanceledToPaid_whenBalanceIsNull_shouldThrowNotEnoughBalance() {
+        AppUser user = user();
+        user.setBalance(null);
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user, tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.notEnoughBalance");
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(4);
+    }
+
+    @Test
+    void changeStatus_fromCanceledToPaid_whenBalanceIsNotEnough_shouldThrowBusinessException() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("500"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user, tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.changeStatus(10L, BookingStatus.PAID))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("booking.error.notEnoughBalance");
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.CANCELED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(4);
+        assertThat(user.getBalance()).isEqualByComparingTo("500");
+    }
+
+    @Test
+    void changeStatus_fromCanceledToPaid_whenBalanceIsEnough_shouldSubtractBalanceDecreasePlacesAndSetPaid() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("2000"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user, tour, BookingStatus.CANCELED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.PAID);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.PAID);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(4);
+        assertThat(user.getBalance()).isEqualByComparingTo("1000");
+    }
+
+    @Test
+    void changeStatus_fromRegisteredToPaid_shouldOnlyChangeStatus() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("2000"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(5);
+
+        Booking booking = booking(user, tour, BookingStatus.REGISTERED);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.PAID);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.PAID);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(5);
+        assertThat(user.getBalance()).isEqualByComparingTo("2000");
+    }
+
+    @Test
+    void changeStatus_fromPaidToRegistered_shouldOnlyChangeStatusWithoutRefundOrPlacesChange() {
+        AppUser user = user();
+        user.setBalance(new BigDecimal("500"));
+
+        Tour tour = tour();
+        tour.setAvailablePlaces(3);
+
+        Booking booking = booking(user, tour, BookingStatus.PAID);
+
+        when(bookingRepository.findById(10L))
+                .thenReturn(Optional.of(booking));
+
+        bookingService.changeStatus(10L, BookingStatus.REGISTERED);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.REGISTERED);
+        assertThat(tour.getAvailablePlaces()).isEqualTo(3);
+        assertThat(user.getBalance()).isEqualByComparingTo("500");
     }
 
     private AppUser user() {

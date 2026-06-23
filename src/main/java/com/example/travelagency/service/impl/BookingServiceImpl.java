@@ -34,7 +34,7 @@ public class BookingServiceImpl implements BookingService {
     public Page<Booking> getUserBookings(String email, Pageable pageable) {
         return bookingRepository.findByUserEmail(email, pageable);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Page<Booking> searchAllBookings(String keyword, BookingStatus status, Pageable pageable) {
@@ -141,26 +141,35 @@ public class BookingServiceImpl implements BookingService {
 
         Tour tour = booking.getTour();
 
-        if (oldStatus == BookingStatus.CANCELED && newStatus != BookingStatus.CANCELED) {
+        boolean wasCanceled = oldStatus == BookingStatus.CANCELED;
+        boolean willBeCanceled = newStatus == BookingStatus.CANCELED;
+
+        if (wasCanceled) {
             if (tour.getAvailablePlaces() <= 0) {
                 throw new BusinessException("booking.error.noPlaces");
             }
+
             tour.setAvailablePlaces(tour.getAvailablePlaces() - 1);
         }
 
-        if (oldStatus != BookingStatus.CANCELED && newStatus == BookingStatus.CANCELED) {
+        if (willBeCanceled) {
             tour.setAvailablePlaces(tour.getAvailablePlaces() + 1);
         }
 
-        if (oldStatus == BookingStatus.PAID && newStatus == BookingStatus.CANCELED) {
+        if (oldStatus == BookingStatus.PAID && willBeCanceled) {
             AppUser user = booking.getUser();
-            BigDecimal balance = user.getBalance() == null ? BigDecimal.ZERO : user.getBalance();
+            BigDecimal balance = user.getBalance() == null
+                    ? BigDecimal.ZERO
+                    : user.getBalance();
+
             user.setBalance(balance.add(booking.getPriceAtBooking()));
         }
 
-        if (oldStatus == BookingStatus.CANCELED && newStatus == BookingStatus.PAID) {
+        if (wasCanceled && newStatus == BookingStatus.PAID) {
             AppUser user = booking.getUser();
-            BigDecimal balance = user.getBalance() == null ? BigDecimal.ZERO : user.getBalance();
+            BigDecimal balance = user.getBalance() == null
+                    ? BigDecimal.ZERO
+                    : user.getBalance();
 
             if (balance.compareTo(booking.getPriceAtBooking()) < 0) {
                 throw new BusinessException("booking.error.notEnoughBalance");
@@ -170,6 +179,12 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(newStatus);
-        log.info("Booking status changed: bookingId={} oldStatus={} newStatus={}", bookingId, oldStatus, newStatus);
+
+        log.info(
+                "Booking status changed: bookingId={} oldStatus={} newStatus={}",
+                bookingId,
+                oldStatus,
+                newStatus
+        );
     }
 }

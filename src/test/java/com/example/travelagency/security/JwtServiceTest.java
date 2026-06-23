@@ -2,6 +2,7 @@ package com.example.travelagency.security;
 
 import com.example.travelagency.domain.AppUser;
 import com.example.travelagency.domain.Role;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -9,13 +10,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtServiceTest {
 
+    private JwtService jwtService;
+
     private static final String SECRET =
             "MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=";
-
-    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
@@ -26,18 +28,28 @@ class JwtServiceTest {
     }
 
     @Test
-    void generateToken_shouldCreateTokenAndExtractEmail() {
-        AppUser user = user();
+    void generateToken_shouldGenerateToken() {
+        AppUser user = user("user@email.com");
 
         String token = jwtService.generateToken(user);
 
         assertThat(token).isNotBlank();
-        assertThat(jwtService.extractEmail(token)).isEqualTo("user@email.com");
     }
 
     @Test
-    void isTokenValid_whenUsernameMatchesAndTokenNotExpired_shouldReturnTrue() {
-        AppUser user = user();
+    void extractEmail_shouldReturnEmailFromToken() {
+        AppUser user = user("user@email.com");
+
+        String token = jwtService.generateToken(user);
+
+        String email = jwtService.extractEmail(token);
+
+        assertThat(email).isEqualTo("user@email.com");
+    }
+
+    @Test
+    void isTokenValid_whenTokenIsValid_shouldReturnTrue() {
+        AppUser user = user("user@email.com");
         String token = jwtService.generateToken(user);
 
         UserDetails userDetails = User.withUsername("user@email.com")
@@ -51,11 +63,11 @@ class JwtServiceTest {
     }
 
     @Test
-    void isTokenValid_whenUsernameDoesNotMatch_shouldReturnFalse() {
-        AppUser user = user();
+    void isTokenValid_whenEmailDoesNotMatch_shouldReturnFalse() {
+        AppUser user = user("user@email.com");
         String token = jwtService.generateToken(user);
 
-        UserDetails userDetails = User.withUsername("other@email.com")
+        UserDetails userDetails = User.withUsername("another@email.com")
                 .password("password")
                 .authorities("ROLE_USER")
                 .build();
@@ -66,10 +78,10 @@ class JwtServiceTest {
     }
 
     @Test
-    void isTokenValid_whenTokenExpired_shouldReturnFalse() {
-        ReflectionTestUtils.setField(jwtService, "expirationSeconds", -1L);
+    void isTokenValid_whenTokenIsExpired_shouldReturnFalse() {
+        ReflectionTestUtils.setField(jwtService, "expirationSeconds", -3600L);
 
-        AppUser user = user();
+        AppUser user = user("user@email.com");
         String token = jwtService.generateToken(user);
 
         UserDetails userDetails = User.withUsername("user@email.com")
@@ -94,9 +106,15 @@ class JwtServiceTest {
         assertThat(result).isFalse();
     }
 
-    private AppUser user() {
+    @Test
+    void extractEmail_whenTokenIsInvalid_shouldThrowJwtException() {
+        assertThatThrownBy(() -> jwtService.extractEmail("bad-token"))
+                .isInstanceOf(JwtException.class);
+    }
+
+    private AppUser user(String email) {
         AppUser user = new AppUser();
-        user.setEmail("user@email.com");
+        user.setEmail(email);
         user.setRole(Role.ROLE_USER);
         return user;
     }
