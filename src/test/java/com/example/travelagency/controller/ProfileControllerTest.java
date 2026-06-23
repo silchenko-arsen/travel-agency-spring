@@ -1,6 +1,8 @@
 package com.example.travelagency.controller;
 
 import com.example.travelagency.domain.AppUser;
+import com.example.travelagency.dto.auth.ChangePasswordRequest;
+import com.example.travelagency.dto.user.BalanceTopUpRequest;
 import com.example.travelagency.dto.user.UserUpdateRequest;
 import com.example.travelagency.exception.BusinessException;
 import com.example.travelagency.service.MessageService;
@@ -229,6 +231,39 @@ class ProfileControllerTest {
                 .andExpect(model().attribute("user", user))
                 .andExpect(model().attribute("profileForm", profileForm))
                 .andExpect(model().attributeExists("balanceForm"));
+    }
+
+    @Test
+    void profile_whenFormsAlreadyExistInModel_shouldNotReplaceThem() throws Exception {
+        AppUser user = user();
+
+        UserUpdateRequest existingProfileForm = new UserUpdateRequest();
+        existingProfileForm.setFirstName("Existing");
+        existingProfileForm.setLastName("Form");
+        existingProfileForm.setPhone("+380501111111");
+
+        BalanceTopUpRequest existingBalanceForm = new BalanceTopUpRequest();
+        existingBalanceForm.setAmount(new BigDecimal("500"));
+
+        ChangePasswordRequest existingPasswordForm = new ChangePasswordRequest();
+        existingPasswordForm.setOldPassword("Oldpass1!");
+        existingPasswordForm.setNewPassword("Newpass1!");
+
+        when(userService.getByEmail("user@email.com")).thenReturn(user);
+
+        mockMvc.perform(get("/profile")
+                        .principal(new TestingAuthenticationToken("user@email.com", null))
+                        .flashAttr("profileForm", existingProfileForm)
+                        .flashAttr("balanceForm", existingBalanceForm)
+                        .flashAttr("passwordForm", existingPasswordForm))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/profile"))
+                .andExpect(model().attribute("user", user))
+                .andExpect(model().attribute("profileForm", existingProfileForm))
+                .andExpect(model().attribute("balanceForm", existingBalanceForm))
+                .andExpect(model().attribute("passwordForm", existingPasswordForm));
+
+        verify(userService).getByEmail("user@email.com");
     }
 
     private AppUser user() {
