@@ -2,6 +2,7 @@ package com.example.travelagency.security;
 
 import com.example.travelagency.domain.AppUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -39,9 +40,13 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        String email = extractEmail(token);
+        try {
+            String email = extractEmail(token);
 
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
