@@ -5,6 +5,7 @@ import com.example.travelagency.service.BookingService;
 import com.example.travelagency.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 @Controller
 @RequestMapping("/manager")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
 public class ManagerController {
 
     private final TourService tourService;
