@@ -1,15 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
-<head><title>Tours</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" th:href="@{/css/style.css}">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="#{nav.tours}">Tours</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/nav :: nav}"></div>
+
 <main class="container">
     <h1 th:text="#{nav.tours}">Tours</h1>
+
     <p class="success" th:if="${success}" th:text="${success}"></p>
+
     <form class="search" th:action="@{/tours}" method="get">
         <input type="text"
                name="keyword"
@@ -60,34 +67,100 @@
             Search
         </button>
     </form>
-    <p sec:authorize="hasRole('ADMIN')"><a class="button" th:href="@{/admin/tours/new}">Add tour</a></p>
+
+    <p sec:authorize="hasRole('ADMIN')">
+        <a class="button"
+           th:href="@{/admin/tours/new}"
+           th:text="#{tour.add}">
+            Add tour
+        </a>
+    </p>
 
     <section class="grid">
         <article class="card" th:each="tour : ${tours.content}">
-            <h2><a th:href="@{/tours/{id}(id=${tour.id})}" th:text="${tour.title}">Tour</a></h2>
-            <strong class="hot" th:if="${tour.hot}" th:text="#{common.hot}">HOT</strong>
-            <p><span th:text="${tour.country}">Country</span>, <span th:text="${tour.city}">City</span></p>
-            <p><span th:text="${tour.startDate}"></span> - <span th:text="${tour.endDate}"></span></p>
-            <p><b th:text="${tour.price}">0</b> UAH</p>
-            <p>Places: <span th:text="${tour.availablePlaces}"></span></p>
-            <form sec:authorize="hasRole('USER')" th:action="@{/bookings/tour/{id}(id=${tour.id})}" method="post">
-                <button type="submit">Book</button>
+            <h2>
+                <a th:href="@{/tours/{id}(id=${tour.id})}"
+                   th:text="${tour.title}">
+                    Tour
+                </a>
+            </h2>
+
+            <strong class="hot"
+                    th:if="${tour.hot}"
+                    th:text="#{common.hot}">
+                HOT
+            </strong>
+
+            <p>
+                <span th:text="${tour.country}">Country</span>,
+                <span th:text="${tour.city}">City</span>
+            </p>
+
+            <p>
+                <span th:text="${tour.startDate}"></span>
+                -
+                <span th:text="${tour.endDate}"></span>
+            </p>
+
+            <p>
+                <b th:text="${tour.price}">0</b>
+                <span th:text="#{currency.uah}">UAH</span>
+            </p>
+
+            <p>
+                <span th:text="#{tour.places}">Places</span>:
+                <span th:text="${tour.availablePlaces}"></span>
+            </p>
+
+            <form sec:authorize="hasRole('USER')"
+                  th:action="@{/bookings/tour/{id}(id=${tour.id})}"
+                  method="post">
+                <button type="submit"
+                        th:text="#{tour.book}">
+                    Book
+                </button>
             </form>
-            <form sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:action="@{/manager/tours/{id}/hot(id=${tour.id})}" method="post">
-                <input type="hidden" name="hot" th:value="${!tour.hot}">
-                <button type="submit" th:text="${tour.hot} ? 'Remove hot' : 'Make hot'">Hot</button>
+
+            <form sec:authorize="hasAnyRole('MANAGER','ADMIN')"
+                  th:action="@{/manager/tours/{id}/hot(id=${tour.id})}"
+                  method="post">
+                <input type="hidden"
+                       name="hot"
+                       th:value="${!tour.hot}">
+
+                <button type="submit"
+                        th:text="${tour.hot} ? #{tour.hot.remove} : #{tour.hot.make}">
+                    Hot
+                </button>
             </form>
+
             <p sec:authorize="hasRole('ADMIN')">
-                <a th:href="@{/admin/tours/{id}/edit(id=${tour.id})}">Edit</a>
+                <a th:href="@{/admin/tours/{id}/edit(id=${tour.id})}"
+                   th:text="#{common.edit}">
+                    Edit
+                </a>
             </p>
         </article>
     </section>
 
     <div class="pagination">
-        <a th:if="${tours.hasPrevious()}" th:href="@{/tours(page=${tours.number - 1},size=${size},keyword=${keyword},sort=${sort},direction=${direction})}">Prev</a>
-        <span th:text="${tours.number + 1} + ' / ' + ${tours.totalPages}">1/1</span>
-        <a th:if="${tours.hasNext()}" th:href="@{/tours(page=${tours.number + 1},size=${size},keyword=${keyword},sort=${sort},direction=${direction})}">Next</a>
+        <a th:if="${tours.hasPrevious()}"
+           th:href="@{/tours(page=${tours.number - 1},size=${size},keyword=${keyword},sort=${sort},direction=${direction})}"
+           th:text="#{pagination.prev}">
+            Previous
+        </a>
+
+        <span th:text="${tours.number + 1} + ' / ' + ${tours.totalPages}">
+            1 / 1
+        </span>
+
+        <a th:if="${tours.hasNext()}"
+           th:href="@{/tours(page=${tours.number + 1},size=${size},keyword=${keyword},sort=${sort},direction=${direction})}"
+           th:text="#{pagination.next}">
+            Next
+        </a>
     </div>
 </main>
+
 </body>
 </html>
