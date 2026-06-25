@@ -38,7 +38,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Page<Booking> searchAllBookings(String keyword, BookingStatus status, Pageable pageable) {
-        return bookingRepository.searchAll(keyword, status, pageable);
+        return bookingRepository.search(keyword, status, pageable);
     }
 
     @Override

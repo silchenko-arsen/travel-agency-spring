@@ -59,12 +59,12 @@ class BookingServiceTest {
     void searchAllBookings_shouldCallRepository() {
         PageRequest pageable = PageRequest.of(0, 10);
 
-        when(bookingRepository.searchAll("paris", BookingStatus.PAID, pageable))
+        when(bookingRepository.search("paris", BookingStatus.PAID, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
         assertThat(bookingService.searchAllBookings("paris", BookingStatus.PAID, pageable)).isNotNull();
 
-        verify(bookingRepository).searchAll("paris", BookingStatus.PAID, pageable);
+        verify(bookingRepository).search("paris", BookingStatus.PAID, pageable);
     }
 
     @Test

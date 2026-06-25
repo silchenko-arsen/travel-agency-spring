@@ -48,7 +48,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     or lower(t.city) like lower(concat('%', :keyword, '%'))
               )
             """)
-    Page<Booking> searchAll(
+    Page<Booking> search(
             @Param("keyword") String keyword,
             @Param("status") BookingStatus status,
             Pageable pageable
